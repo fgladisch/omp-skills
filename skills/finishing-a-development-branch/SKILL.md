@@ -9,13 +9,58 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 Guide completion of development work by presenting clear options and handling chosen workflow.
 
-**Core principle:** Verify tests → simplify when useful → present options → execute choice → clean up.
+**Core principle:** Validate branch context → verify tests → simplify when useful → present options → execute choice → clean up.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
 ## The Process
 
-### Step 1: Verify Tests
+### Step 1: Validate Branch Context
+
+Start with the `base_branch`, `feature_branch`, and `base_sha` recorded by the implementation workflow, then read the actual current branch:
+
+```bash
+current_branch=$(git branch --show-current)
+```
+
+Stop immediately if HEAD is detached.
+
+For direct use without recorded context, resolve the missing values before validation. Determine the base branch from an explicit project convention or `refs/remotes/origin/HEAD`:
+
+```bash
+remote_default=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)
+base_branch=${remote_default#origin/}
+feature_branch=$current_branch
+```
+
+If no remote default exists, use an unambiguous local `main` or `master`; ask the user if neither or both establish the intended base. Do not use `git merge-base` to infer a branch name because it returns a commit.
+
+Once both names are known, verify that they are local branches and that the recorded feature branch is checked out:
+
+```bash
+git show-ref --verify --quiet "refs/heads/$base_branch"
+git show-ref --verify --quiet "refs/heads/$feature_branch"
+test "$current_branch" = "$feature_branch"
+```
+
+**Same-branch guard:** If `current_branch == base_branch`, the branch lifecycle precondition failed. Do not present merge, PR, keep-branch, or discard options. Report that implementation is already on the base branch and stop. Repairing commits already made on the base requires a separate, explicit recovery workflow.
+
+For direct use, record the shared commit only after both branches and the same-branch guard are validated:
+
+```bash
+base_sha=$(git merge-base "$feature_branch" "$base_branch")
+```
+
+Finally, verify that `base_sha` identifies a commit in the feature branch's history:
+
+```bash
+git cat-file -e "${base_sha}^{commit}"
+git merge-base --is-ancestor "$base_sha" "$feature_branch"
+```
+
+Stop if a branch is missing, the recorded feature branch is not checked out, or the recorded SHA is invalid or outside the feature branch's history.
+
+### Step 2: Verify Tests
 
 **Before presenting options, verify tests pass:**
 
@@ -34,18 +79,9 @@ Tests failing (<N> failures). Must fix before completing:
 Cannot proceed with merge/PR until tests pass.
 ```
 
-Stop. Don't proceed to Step 2.
+Stop. Don't proceed to Step 3.
 
-**If tests pass:** If the branch contains non-trivial code changes and simplify has not run for this diff, use **simplify** before presenting finish options. Skip for docs-only changes, tiny mechanical edits, or when an equivalent code-quality review already ran and found no issues. Then continue to Step 2.
-
-### Step 2: Determine Base Branch
-
-```bash
-# Try common base branches
-git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
-```
-
-Or ask: "This branch split from main - is that correct?"
+**If tests pass:** If the branch contains non-trivial code changes and simplify has not run for this diff, use **simplify** before presenting finish options. Skip for docs-only changes, tiny mechanical edits, or when an equivalent code-quality review already ran and found no issues. Then continue to Step 3.
 
 ### Step 3: Present Options
 
@@ -207,7 +243,7 @@ git worktree remove <worktree-path>
 
 **Called by:**
 
-- **subagent-driven-development** - After all tasks, simplify cleanup, the parallel formal review stage, accepted fixes, and full-plan verification
+- **subagent-driven-development** - After all tasks, simplify cleanup, the parallel formal review stage, accepted fixes, and full-plan verification; receives the recorded base branch, feature branch, and implementation-start SHA
 
 **Related skills:**
 

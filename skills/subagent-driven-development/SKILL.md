@@ -29,12 +29,38 @@ Use `context: "fresh"` for every worker and reviewer. Fresh reviewers are read-o
 
 Override the model only when the task warrants it. Mechanical work can use a cheaper configured worker model; integration, debugging, or broad review can use the default or a more capable configured model.
 
+## Branch Preflight
+
+Run this before capturing the implementation range or dispatching a worker.
+
+1. Read the plan and project context to identify the intended base branch. Prefer an explicit project convention or caller-provided value. Otherwise inspect `refs/remotes/origin/HEAD`, then fall back to an unambiguous local `main` or `master`. Ask the user if the base is still ambiguous. A merge-base commit does not identify a branch name.
+2. Inspect the current state:
+
+```bash
+git status --short
+current_branch=$(git branch --show-current)
+remote_default=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)
+default_base=${remote_default#origin/}
+```
+
+Stop on a detached HEAD or unexpected staged, modified, or untracked files. Resolve those before branch creation so unrelated work cannot leak into the implementation.
+
+3. Treat the detected base branch, `main`, `master`, and any protected branches named in project context as protected. If `current_branch == base_branch` or the current branch is otherwise protected, derive a short branch name from the plan topic, follow the repository's naming convention, verify that it does not already exist, then create and switch to it:
+
+```bash
+git switch -c <feature-branch>
+```
+
+If the name already exists or branch creation fails, stop and resolve it. Never dispatch an implementation worker on a protected branch.
+
+4. If already on a non-protected feature branch, preserve it. After any required switch, record `base_branch`, `feature_branch`, and `base_sha` where `base_sha` is `git rev-parse HEAD` immediately before the first worker. Keep all three values for ranged review and branch completion.
+
 ## Process
 
 ```dot
 digraph process {
     rankdir=TB;
-    "Read plan, capture base SHA, extract task text/context, create todos" [shape=box];
+    "Read plan, run branch preflight, record base branch + feature branch + base SHA, extract tasks" [shape=box];
     "Dispatch fresh worker for next task" [shape=box];
     "Worker implements, tests, commits, self-reviews" [shape=box];
     "Worker status acceptable?" [shape=diamond];
@@ -53,7 +79,7 @@ digraph process {
     "Full-plan verification and final diff inspection" [shape=box];
     "Use finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
-    "Read plan, capture base SHA, extract task text/context, create todos" -> "Dispatch fresh worker for next task";
+    "Read plan, run branch preflight, record base branch + feature branch + base SHA, extract tasks" -> "Dispatch fresh worker for next task";
     "Dispatch fresh worker for next task" -> "Worker implements, tests, commits, self-reviews";
     "Worker implements, tests, commits, self-reviews" -> "Worker status acceptable?";
     "Worker status acceptable?" -> "Resolve question, NEEDS_CONTEXT, DONE_WITH_CONCERNS, or BLOCKED" [label="question / NEEDS_CONTEXT / DONE_WITH_CONCERNS / BLOCKED"];
@@ -81,7 +107,7 @@ The fixer goes directly to verification. Do not automatically re-run either revi
 
 ## Sequential Worker Loop
 
-Capture `base_sha` before the first task. For each task, fill the complete task text and scene-setting context into `./implementer-prompt.md`, then dispatch:
+Use the `base_sha` recorded by Branch Preflight. For each task, fill the complete task text and scene-setting context into `./implementer-prompt.md`, then dispatch:
 
 ```typescript
 subagent({
@@ -177,7 +203,7 @@ Dispatch it with `agent: "worker"` and `context: "fresh"`. It fixes only the acc
 
 After both review reports have been read and dispositioned, remove the output directory with `rm -rf "$review_dir"`; also clean it up before stopping after a failed or interrupted review call.
 
-After a fixer, or after finding synthesis when no fix is needed, run full-plan verification and inspect the final `base_sha..HEAD` diff. This is the terminal `verification-before-completion` gate. Only then use `finishing-a-development-branch`.
+After a fixer, or after finding synthesis when no fix is needed, run full-plan verification and inspect the final `base_sha..HEAD` diff. This is the terminal `verification-before-completion` gate. Pass `base_branch`, `feature_branch`, and `base_sha` to `finishing-a-development-branch`; only then start that workflow.
 
 ## Prompt Templates
 
@@ -190,7 +216,7 @@ The controller uses these adjacent source templates. It fills the placeholders i
 ## Example Workflow
 
 ```text
-[Read approved plan; capture base_sha; extract Tasks 1 and 2; create todos]
+[Read approved plan; run Branch Preflight; record base_branch, feature_branch, and base_sha; extract Tasks 1 and 2; create todos]
 
 Task 1:
   subagent({ agent: "worker", task: "<implementer-prompt Task 1>", context: "fresh" })
@@ -239,6 +265,7 @@ subagent({
 ## Integration
 
 - **writing-plans** supplies the approved plan and is required before dispatch.
+- **Branch Preflight** creates a feature branch when execution starts on the base or another protected branch, then preserves its recorded branch context through completion.
 - **requesting-code-review** supplies the basis for the code-quality reviewer prompt.
 - **simplify** runs once before formal review, explicitly over `base_sha..HEAD`.
 - **verification-before-completion** is the terminal gate after synthesis and any fixer work.
