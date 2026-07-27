@@ -52,7 +52,10 @@ The `subagent` tool comes from the `pi-subagents` extension.
 - Note Minor issues for later
 - Push back if reviewer is wrong (with reasoning)
 
-## Example
+## Manual/Ad-Hoc Review Example
+
+This example is for manual or ad-hoc work. Do not use this timing for
+subagent-driven development, which reviews after the completed plan.
 
 ```
 [Just completed Task 2: Add verification function]
@@ -84,7 +87,8 @@ You: [Fix progress indicators]
 
 **Subagent-Driven Development:**
 - After the complete implementation plan and simplify cleanup commit, dispatch final spec/integration and code-quality reviewers in parallel as one formal stage
-- Synthesize both reviews before assigning one fixer for accepted findings
+- Synthesize both reviews before assigning one fixer for accepted blocking findings
+- Defer Minor-only findings; do not dispatch a fixer for them
 - Do not automatically re-review after fixes
 
 **Manual Batch Execution:**

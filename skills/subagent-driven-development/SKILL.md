@@ -50,36 +50,43 @@ digraph process {
     rankdir=TB;
     "Read plan, capture base SHA, extract task text/context, create todos" [shape=box];
     "Dispatch fresh worker for next task" [shape=box];
-    "Worker status?" [shape=diamond];
-    "Resolve question, NEEDS_CONTEXT, or BLOCKED" [shape=box];
-    "Controller checks DONE report and evidence; mark task complete" [shape=box];
+    "Worker implements, tests, commits, self-reviews" [shape=box];
+    "Worker status acceptable?" [shape=diamond];
+    "Resolve question, NEEDS_CONTEXT, DONE_WITH_CONCERNS, or BLOCKED" [shape=box];
+    "Controller checks DONE report and evidence; verify clean status" [shape=box];
     "More tasks?" [shape=diamond];
     "Run simplify on base SHA..HEAD" [shape=box];
     "Verify and commit cleanup" [shape=box];
+    "Verify clean status before review-head capture" [shape=box];
     "Capture shared review head" [shape=box];
     "Dispatch final spec/integration + code-quality reviewers in parallel" [shape=box];
     "Synthesize findings and disposition" [shape=box];
     "Accepted blockers?" [shape=diamond];
     "Dispatch one fresh fixer" [shape=box];
+    "Verify clean status after fixer" [shape=box];
     "Full-plan verification and final diff inspection" [shape=box];
     "Use finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Read plan, capture base SHA, extract task text/context, create todos" -> "Dispatch fresh worker for next task";
-    "Dispatch fresh worker for next task" -> "Worker status?";
-    "Worker status?" -> "Resolve question, NEEDS_CONTEXT, or BLOCKED" [label="question / NEEDS_CONTEXT / BLOCKED"];
-    "Resolve question, NEEDS_CONTEXT, or BLOCKED" -> "Dispatch fresh worker for next task";
-    "Worker status?" -> "Controller checks DONE report and evidence; mark task complete" [label="DONE or resolved DONE_WITH_CONCERNS"];
-    "Controller checks DONE report and evidence; mark task complete" -> "More tasks?";
+    "Dispatch fresh worker for next task" -> "Worker implements, tests, commits, self-reviews";
+    "Worker implements, tests, commits, self-reviews" -> "Worker status acceptable?";
+    "Worker status acceptable?" -> "Resolve question, NEEDS_CONTEXT, DONE_WITH_CONCERNS, or BLOCKED" [label="question / NEEDS_CONTEXT / DONE_WITH_CONCERNS / BLOCKED"];
+    "Resolve question, NEEDS_CONTEXT, DONE_WITH_CONCERNS, or BLOCKED" -> "Dispatch fresh worker for next task" [label="needs more worker work"];
+    "Resolve question, NEEDS_CONTEXT, DONE_WITH_CONCERNS, or BLOCKED" -> "Controller checks DONE report and evidence; verify clean status" [label="resolved"];
+    "Worker status acceptable?" -> "Controller checks DONE report and evidence; verify clean status" [label="DONE"];
+    "Controller checks DONE report and evidence; verify clean status" -> "More tasks?";
     "More tasks?" -> "Dispatch fresh worker for next task" [label="yes"];
     "More tasks?" -> "Run simplify on base SHA..HEAD" [label="no"];
     "Run simplify on base SHA..HEAD" -> "Verify and commit cleanup";
-    "Verify and commit cleanup" -> "Capture shared review head";
+    "Verify and commit cleanup" -> "Verify clean status before review-head capture";
+    "Verify clean status before review-head capture" -> "Capture shared review head";
     "Capture shared review head" -> "Dispatch final spec/integration + code-quality reviewers in parallel";
     "Dispatch final spec/integration + code-quality reviewers in parallel" -> "Synthesize findings and disposition";
     "Synthesize findings and disposition" -> "Accepted blockers?";
     "Accepted blockers?" -> "Dispatch one fresh fixer" [label="yes"];
     "Accepted blockers?" -> "Full-plan verification and final diff inspection" [label="no"];
-    "Dispatch one fresh fixer" -> "Full-plan verification and final diff inspection";
+    "Dispatch one fresh fixer" -> "Verify clean status after fixer";
+    "Verify clean status after fixer" -> "Full-plan verification and final diff inspection";
     "Full-plan verification and final diff inspection" -> "Use finishing-a-development-branch";
 }
 ```
@@ -103,8 +110,10 @@ subagent({
 
 Workers must self-review, run relevant verification, commit their task, and
 report evidence. A `DONE` result advances only after the controller checks the
-report, commit, changed files, and verification evidence. Never have parallel
-workers write in the active worktree.
+report, commit, changed files, verification evidence, and `git status --short`.
+After every worker commit, unexpected staged, modified, or untracked files
+block progression. Only explicitly recognized scratch files may be excluded.
+Never have parallel workers write in the active worktree.
 
 Handle worker statuses deliberately:
 
@@ -139,10 +148,14 @@ with materially clearer instructions.
 
 ## Simplify and Formal Parallel Review
 
-After all worker tasks are complete, run `simplify` once on the explicit
-`base_sha..HEAD` plan range. Apply its appropriate cleanup, run verification,
-and make one cleanup commit if it changed files. Capture `review_head` only
-after that cleanup commit (or after confirming no cleanup was needed).
+After all worker tasks are complete, run `git status --short` before
+`simplify`; unexpected staged, modified, or untracked files block progression,
+and only explicitly recognized scratch files may be excluded. Run `simplify`
+once on the explicit `base_sha..HEAD` plan range. Apply its appropriate cleanup,
+run verification, and make one cleanup commit if it changed files. Before
+capturing `review_head`, run `git status --short` again and apply the same
+cleanliness rule. Capture `review_head` only after that cleanup commit (or after
+confirming no cleanup was needed).
 
 Read the adjacent source templates `./final-reviewer-prompt.md` and
 `./code-quality-reviewer-prompt.md`. In each file, substitute the placeholders
@@ -206,7 +219,9 @@ Report: status, summary, verification commands and results, changed files,
 
 Dispatch it with `agent: "worker"` and `context: "fresh"`. It fixes only the
 accepted set, runs complete plan verification, self-reviews, and commits once.
-Do not dispatch a second fixer as an automatic loop.
+After the fixer commit, run `git status --short`; unexpected staged, modified,
+or untracked files block progression, and only explicitly recognized scratch
+files may be excluded. Do not dispatch a second fixer as an automatic loop.
 
 After both review reports have been read and dispositioned, remove the output
 directory with `rm -rf "$review_dir"`; also clean it up before stopping after a

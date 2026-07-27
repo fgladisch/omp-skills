@@ -3,15 +3,9 @@
 This file contains controller instructions followed by the reviewer task body.
 Fill the placeholders and pass only the content below the `---` delimiter as the
 `task` string. Dispatch it in parallel with `code-quality-reviewer-prompt.md`
-only after every task in the plan and the simplify cleanup are complete.
-
-```typescript
-subagent({
-  agent: "reviewer",
-  task: `<everything below this line, with placeholders substituted>`,
-  context: "fresh"
-})
-```
+only after every task in the plan and the simplify cleanup are complete. Use
+the coordinated parallel `subagent({ tasks: [...] })` call in `SKILL.md`; do
+not dispatch this template independently.
 
 ---
 

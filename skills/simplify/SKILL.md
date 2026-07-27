@@ -19,11 +19,9 @@ committed, including `subagent-driven-development`.
 Choose the review diff in this order:
 
 1. If the caller supplied a comparison range, run `git diff <base>..<head>`.
-   An empty explicit range means there are no changes to review; report that
-   result and stop.
 2. Otherwise, run `git diff` (or `git diff HEAD` for staged changes).
-3. If that working-tree diff is empty, review the recently modified files named
-   by the user or changed earlier in the conversation.
+3. If the selected diff is empty, review the recently modified files named by
+   the user or changed earlier in the conversation.
 
 Record the selected range, working-tree diff, or fallback file scope and provide
 it to all three reviewers so they inspect exactly the same selected scope.

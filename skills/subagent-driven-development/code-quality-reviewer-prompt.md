@@ -3,15 +3,9 @@
 This file contains controller instructions followed by the reviewer task body.
 Fill the placeholders and pass only the content below the `---` delimiter as the
 `task` string. Dispatch it in parallel with `final-reviewer-prompt.md` only
-after every task in the plan and the simplify cleanup are complete.
-
-```typescript
-subagent({
-  agent: "reviewer",
-  task: `<everything below this line, with placeholders substituted>`,
-  context: "fresh"
-})
-```
+after every task in the plan and the simplify cleanup are complete. Use the
+coordinated parallel `subagent({ tasks: [...] })` call in `SKILL.md`; do not
+dispatch this template independently.
 
 ---
 
@@ -46,13 +40,15 @@ by the implementation; do not rerun the full verification suite.
 Read `WORKING_DIRECTORY/skills/requesting-code-review/code-reviewer.md` and
 apply its Code Quality, Architecture, Testing, and Production Readiness checks.
 Skip its Requirements section because the parallel final reviewer owns plan
-compliance. For every
-issue, follow the canonical template's evidence rules: cite the location,
-explain what is wrong and why it matters, and give a fix when it is not obvious.
-Also check dead code and boundary leaks introduced by this branch.
+compliance. Check naming, consistency with project conventions, and concurrency
+risks. For every issue, follow the canonical template's evidence rules: cite
+the location, explain what is wrong and why it matters, and give a fix when it
+is not obvious. Also check dead code and boundary leaks introduced by this
+branch.
 
-Do not perform line-by-line plan compliance or assess missing or extra product
-requirements. The parallel final reviewer owns those concerns.
+Do not perform line-by-line plan compliance or report missing or extra product
+requirements. The parallel final reviewer owns specification and cross-task
+integration compliance.
 
 ## Report Format
 
