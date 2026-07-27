@@ -5,503 +5,262 @@ description: Use after an implementation plan exists and it contains independent
 
 # Subagent-Driven Development
 
-Execute a plan by dispatching one fresh subagent per task with the
-[`pi-subagents`](https://github.com/nicobailon/pi-subagents) extension, then
-gating each task on a two-stage review (spec compliance, then code quality).
+Execute an approved implementation plan with one fresh worker per task, writing
+sequentially in the active worktree. After every task is complete, run
+`simplify` across the plan range, commit any cleanup, then run one bounded
+parallel review stage. That stage has separate final spec/integration and
+code-quality reviewers.
 
-**Why subagents:** You delegate tasks to specialized agents with isolated
-context. By precisely crafting their instructions and selecting the right
-context mode, you ensure they stay focused and succeed at their task. They
-should never inherit your session's history unless you explicitly ask for it
-— you construct exactly what they need. This also preserves your own context
-for coordination work.
+**Core principle:** Fresh worker per task + one bounded post-plan parallel
+review stage = focused implementation with independent final checks.
 
-**Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration.
-
-> **Prerequisite:** the [`pi-subagents`](https://github.com/nicobailon/pi-subagents) extension must be installed. If `subagent({ action: "doctor" })` reports a healthy setup, you are ready. Read the `pi-subagents` skill for the full tool surface; this skill assumes its calling conventions.
+> **Prerequisite:** Read `writing-plans` and have an approved plan before using
+> this workflow. The [`pi-subagents`](https://github.com/nicobailon/pi-subagents)
+> extension must be installed. If `subagent({ action: "doctor" })` reports a
+> healthy setup, read the `pi-subagents` skill if you need its full tool surface.
 
 ## When to Use
 
-```dot
-digraph when_to_use {
-    "Have implementation plan?" [shape=diamond];
-    "Tasks mostly independent?" [shape=diamond];
-    "subagent-driven-development" [shape=box];
-    "Manual execution or brainstorm first" [shape=box];
-
-    "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
-    "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
-    "Tasks mostly independent?" -> "subagent-driven-development" [label="yes"];
-    "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
-}
-```
-
-**Why this workflow:**
-- Fresh subagent per task (no context pollution)
-- Two-stage review after each task: spec compliance first, then code quality
-- Fast iteration with quality gates
+Use this when a plan has tasks that can be executed in sequence by isolated
+workers. Extract every task and its needed context once, then keep the
+controller focused on coordination and evidence.
 
 ## Agent Selection
 
-`pi-subagents` ships with builtin agents. Use them rather than crafting one-off
-generic delegates:
+| Role | Builtin agent | Timing and responsibility |
+|---|---|---|
+| Implementer | `worker` | Once per plan task, in plan order; implements, tests, self-reviews, and commits. |
+| Simplify reviewers | `simplify` | Once after all tasks; use its three review angles over the explicit plan range. |
+| Final spec/integration reviewer | `reviewer` | Once in the formal parallel review stage; checks the complete plan and cross-task integration. |
+| Code-quality reviewer | `reviewer` | Once in that same formal parallel stage; uses the `requesting-code-review` basis. |
+| Fixer | `worker` | At most once, only when accepted blocking findings require changes. |
 
-| Role | Builtin agent | Why |
-|------|---------------|-----|
-| Implementer | `worker` | General implementation; edits code directly; follows TDD |
-| Spec compliance reviewer | `reviewer` | Adversarial review; explicitly constrained in the task to **report only, do not edit** |
-| Code quality reviewer | `reviewer` | Same agent, second invocation, different prompt |
-| Final branch reviewer | `reviewer` | Reviews the whole branch after all tasks land |
+Use `context: "fresh"` for every worker and reviewer. Fresh reviewers are
+read-only and adversarial. Do not use `oracle` as a reviewer: it is a
+fork-context advisory agent, not an independent final reviewer.
 
-If the task is unusually mechanical or unusually deep, override the model per
-call (`model: "..."`) or via `~/.pi/agent/settings.json`'s `subagents.agentOverrides`.
-See the `pi-subagents` skill for override details.
+Override the model only when the task warrants it. Mechanical work can use a
+cheaper configured worker model; integration, debugging, or broad review can
+use the default or a more capable configured model.
 
-> **Do not use `oracle` here.** `oracle` is forked-context advisory, not
-> fresh-context adversarial review — it would inherit this session's history
-> and lose its independence. Use it only when explicitly auditing inherited
-> direction (e.g., during brainstorming), not for per-task review.
-
-## Context Mode
-
-Always dispatch with **`context: "fresh"`** (the default). Reasons:
-- Implementers should not inherit the controller's noise — only the task text and scene-setting you paste in.
-- Reviewers must be adversarial; `context: "fork"` would inherit the controller's bias.
-
-The only place `context: "fork"` belongs in this workflow is when the
-controller itself wants to consult `oracle` mid-flight about an architectural
-question — and that's outside the per-task loop.
-
-## The Process
+## Process
 
 ```dot
 digraph process {
     rankdir=TB;
-
-    subgraph cluster_per_task {
-        label="Per Task";
-        "Dispatch worker (./implementer-prompt.md as task content)" [shape=box];
-        "Worker asks questions?" [shape=diamond];
-        "Answer questions, provide context" [shape=box];
-        "Worker implements, tests, commits, self-reviews" [shape=box];
-        "Dispatch reviewer for spec compliance (./spec-reviewer-prompt.md)" [shape=box];
-        "Spec reviewer confirms code matches spec?" [shape=diamond];
-        "Re-dispatch worker to fix spec gaps" [shape=box];
-        "Dispatch reviewer for code quality (./code-quality-reviewer-prompt.md)" [shape=box];
-        "Code quality reviewer approves?" [shape=diamond];
-        "Re-dispatch worker to fix quality issues" [shape=box];
-        "Mark task complete in your todo list" [shape=box];
-    }
-
-    "Read plan once, extract every task with full text, note context, create todo list" [shape=box];
-    "More tasks remain?" [shape=diamond];
-    "Dispatch reviewer for whole-branch final review" [shape=box];
-    "Run simplify when code changes are non-trivial" [shape=box];
+    "Read plan, capture base SHA, extract task text/context, create todos" [shape=box];
+    "Dispatch fresh worker for next task" [shape=box];
+    "Worker status?" [shape=diamond];
+    "Resolve question, NEEDS_CONTEXT, or BLOCKED" [shape=box];
+    "Controller checks DONE report and evidence; mark task complete" [shape=box];
+    "More tasks?" [shape=diamond];
+    "Run simplify on base SHA..HEAD" [shape=box];
+    "Verify and commit cleanup" [shape=box];
+    "Capture shared review head" [shape=box];
+    "Dispatch final spec/integration + code-quality reviewers in parallel" [shape=box];
+    "Synthesize findings and disposition" [shape=box];
+    "Accepted blockers?" [shape=diamond];
+    "Dispatch one fresh fixer" [shape=box];
+    "Full-plan verification and final diff inspection" [shape=box];
     "Use finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
-    "Read plan once, extract every task with full text, note context, create todo list" -> "Dispatch worker (./implementer-prompt.md as task content)";
-    "Dispatch worker (./implementer-prompt.md as task content)" -> "Worker asks questions?";
-    "Worker asks questions?" -> "Answer questions, provide context" [label="yes"];
-    "Answer questions, provide context" -> "Dispatch worker (./implementer-prompt.md as task content)";
-    "Worker asks questions?" -> "Worker implements, tests, commits, self-reviews" [label="no"];
-    "Worker implements, tests, commits, self-reviews" -> "Dispatch reviewer for spec compliance (./spec-reviewer-prompt.md)";
-    "Dispatch reviewer for spec compliance (./spec-reviewer-prompt.md)" -> "Spec reviewer confirms code matches spec?";
-    "Spec reviewer confirms code matches spec?" -> "Re-dispatch worker to fix spec gaps" [label="no"];
-    "Re-dispatch worker to fix spec gaps" -> "Dispatch reviewer for spec compliance (./spec-reviewer-prompt.md)" [label="re-review"];
-    "Spec reviewer confirms code matches spec?" -> "Dispatch reviewer for code quality (./code-quality-reviewer-prompt.md)" [label="yes"];
-    "Dispatch reviewer for code quality (./code-quality-reviewer-prompt.md)" -> "Code quality reviewer approves?";
-    "Code quality reviewer approves?" -> "Re-dispatch worker to fix quality issues" [label="no"];
-    "Re-dispatch worker to fix quality issues" -> "Dispatch reviewer for code quality (./code-quality-reviewer-prompt.md)" [label="re-review"];
-    "Code quality reviewer approves?" -> "Mark task complete in your todo list" [label="yes"];
-    "Mark task complete in your todo list" -> "More tasks remain?";
-    "More tasks remain?" -> "Dispatch worker (./implementer-prompt.md as task content)" [label="yes"];
-    "More tasks remain?" -> "Dispatch reviewer for whole-branch final review" [label="no"];
-    "Dispatch reviewer for whole-branch final review" -> "Run simplify when code changes are non-trivial";
-    "Run simplify when code changes are non-trivial" -> "Use finishing-a-development-branch";
+    "Read plan, capture base SHA, extract task text/context, create todos" -> "Dispatch fresh worker for next task";
+    "Dispatch fresh worker for next task" -> "Worker status?";
+    "Worker status?" -> "Resolve question, NEEDS_CONTEXT, or BLOCKED" [label="question / NEEDS_CONTEXT / BLOCKED"];
+    "Resolve question, NEEDS_CONTEXT, or BLOCKED" -> "Dispatch fresh worker for next task";
+    "Worker status?" -> "Controller checks DONE report and evidence; mark task complete" [label="DONE or resolved DONE_WITH_CONCERNS"];
+    "Controller checks DONE report and evidence; mark task complete" -> "More tasks?";
+    "More tasks?" -> "Dispatch fresh worker for next task" [label="yes"];
+    "More tasks?" -> "Run simplify on base SHA..HEAD" [label="no"];
+    "Run simplify on base SHA..HEAD" -> "Verify and commit cleanup";
+    "Verify and commit cleanup" -> "Capture shared review head";
+    "Capture shared review head" -> "Dispatch final spec/integration + code-quality reviewers in parallel";
+    "Dispatch final spec/integration + code-quality reviewers in parallel" -> "Synthesize findings and disposition";
+    "Synthesize findings and disposition" -> "Accepted blockers?";
+    "Accepted blockers?" -> "Dispatch one fresh fixer" [label="yes"];
+    "Accepted blockers?" -> "Full-plan verification and final diff inspection" [label="no"];
+    "Dispatch one fresh fixer" -> "Full-plan verification and final diff inspection";
+    "Full-plan verification and final diff inspection" -> "Use finishing-a-development-branch";
 }
 ```
 
-## Dispatch Calls
+The fixer goes directly to verification. Do not automatically re-run either
+reviewer. A further focused review requires an explicit, concrete risk decision
+from the controller or human.
 
-### Implementer
+## Sequential Worker Loop
+
+Capture `base_sha` before the first task. For each task, fill the complete task
+text and scene-setting context into `./implementer-prompt.md`, then dispatch:
 
 ```typescript
 subagent({
   agent: "worker",
-  task: `<full content of ./implementer-prompt.md with task fields filled in>`,
+  task: `<full content of ./implementer-prompt.md with task fields filled>`,
   context: "fresh"
 })
 ```
 
-The `task` string is the entire content of `./implementer-prompt.md` after you
-substitute the placeholders (`[Task N]`, `[FULL TEXT of task from plan]`,
-`[Context]`, `[directory]`). The worker does not read the plan file — you
-paste the task text directly so the worker has zero discovery overhead.
+Workers must self-review, run relevant verification, commit their task, and
+report evidence. A `DONE` result advances only after the controller checks the
+report, commit, changed files, and verification evidence. Never have parallel
+workers write in the active worktree.
 
-### Spec Compliance Reviewer
+Handle worker statuses deliberately:
 
-After the worker reports DONE, capture the head SHA and dispatch:
+- **Questions:** answer clearly, add the answer to the context, and dispatch a
+  fresh worker with the augmented prompt.
+- **NEEDS_CONTEXT:** supply the missing facts, paths, decisions, or constraints,
+  then dispatch a fresh worker with the complete augmented prompt.
+- **DONE_WITH_CONCERNS:** inspect the concerns. Resolve correctness or scope
+  concerns before advancing; record non-blocking observations with the task.
+  Advance only after it is effectively `DONE` with sufficient evidence.
+- **BLOCKED:** determine whether context, an approved decision, model capability,
+  task decomposition, or the plan is at fault. Supply context or use a more
+  capable worker where appropriate. Escalate an unclear product or plan decision
+  rather than guessing.
 
-```typescript
-subagent({
-  agent: "reviewer",
-  task: `<full content of ./spec-reviewer-prompt.md with task + worker report filled in>`,
-  context: "fresh"
-})
-```
+The normal writer path is strictly sequential. For a genuinely isolated set of
+writes, a clean worktree and `worktree: true` can isolate parallel workers, but
+this is rare and requires an explicit merge plan. Never combine parallel writes
+in the active worktree.
 
-The reviewer prompt explicitly forbids edits. Findings only.
-
-### Code Quality Reviewer
-
-Only after spec compliance passes:
-
-```typescript
-subagent({
-  agent: "reviewer",
-  task: `<full content of ./code-quality-reviewer-prompt.md with task + SHAs + diff summary>`,
-  context: "fresh"
-})
-```
-
-### Re-dispatch on Review Findings
-
-When either reviewer reports issues, re-dispatch the **worker** (not the
-reviewer) with the original task content prefixed by:
-
-```text
-You previously implemented this task. The reviewer found these issues:
-
-[paste reviewer's findings verbatim]
-
-Fix exactly these issues. Do not redo the rest. Then commit and report back.
-```
-
-After the worker reports DONE again, re-dispatch the same reviewer (spec or
-quality) with the updated SHAs. Loop until that reviewer approves.
-
-### Final Branch Review
-
-After every task is approved, run one whole-branch review:
+Long worker runs may be asynchronous when polling improves control:
 
 ```typescript
-subagent({
-  agent: "reviewer",
-  task: `Final review of the entire ${branch} branch against ${plan-path}.
-         Inspect every commit since ${base-sha}. Verify all spec acceptance
-         criteria are met. Report a single Strengths / Issues / Assessment block.`,
-  context: "fresh"
-})
-```
-
-If the final reviewer flags blockers, route them back through the appropriate
-task's worker. Otherwise, hand off to `finishing-a-development-branch`.
-
-## Model Selection
-
-`pi-subagents` builtins have sensible defaults. Override per call only when task complexity warrants it.
-
-| Task complexity | Override |
-|---|---|
-| Mechanical (1-2 files, complete spec, code provided in plan) | Use a cheaper pi model configured in your environment |
-| Integration (multi-file, judgment, debugging) | Default `worker` / `reviewer` model |
-| Architecture / design / cross-cutting review | Use a more capable pi model and higher thinking level |
-
-For persistent overrides across a project, edit `~/.pi/agent/settings.json`:
-
-```json
-{
-  "subagents": {
-    "agentOverrides": {
-      "worker": { "model": "<fast-pi-model>" },
-      "reviewer": { "model": "<capable-pi-model>", "thinking": "high" }
-    }
-  }
-}
-```
-
-## Handling Worker Status
-
-`./implementer-prompt.md` instructs workers to report one of four statuses.
-Handle each:
-
-**DONE:** Capture the head SHA, then proceed to spec compliance review.
-
-**DONE_WITH_CONCERNS:** The worker completed the work but flagged doubts. Read
-the concerns before proceeding. If they are about correctness or scope,
-address them (re-dispatch the worker, or escalate to the human) before
-review. If they are observations (e.g., "this file is getting large"), note
-them and proceed to review.
-
-**NEEDS_CONTEXT:** The worker needs information that wasn't provided. Provide
-the missing context and re-dispatch the worker with the same agent + task,
-augmented by the new context.
-
-**BLOCKED:** The worker cannot complete the task. Assess the blocker:
-1. If it's a context problem, provide more context and re-dispatch with the same model.
-2. If the task requires more reasoning, re-dispatch with a more capable pi model
-   (`subagent({ agent: "worker", task: "...", model: "<capable-pi-model>" })`).
-3. If the task is too large, break it into smaller pieces — update the plan, then dispatch each piece.
-4. If the plan itself is wrong, escalate to the human.
-
-**Never** ignore an escalation or force the same model to retry without
-changes. If the worker said it's stuck, something needs to change.
-
-## Run Health & Control
-
-`pi-subagents` reports control signals when a child run goes silent past its
-threshold. Watch for `needs_attention` events surfaced in the transcript and
-inspect them with:
-
-```typescript
-subagent({ action: "status" })       // active runs
-subagent({ action: "status", id: "abc123" })  // specific run
-```
-
-If a child is genuinely stuck, soft-interrupt and re-dispatch with clearer
-instructions:
-
-```typescript
-subagent({ action: "interrupt", id: "abc123" })
-```
-
-Do **not** interrupt just because a child has briefly produced no output —
-silence is normal during long tool calls or test runs. The skill's default is
-conservative; trust it.
-
-## Async Dispatch (Optional)
-
-For long-running implementer tasks (large test suites, complex builds), launch
-async and check status when expected to finish:
-
-```typescript
-subagent({
-  agent: "worker",
-  task: "<implementer prompt>",
-  context: "fresh",
-  async: true
-})
-// later
+subagent({ agent: "worker", task: "<implementer prompt>", context: "fresh", async: true })
 subagent({ action: "status", id: "<run-id>" })
 ```
 
-Avoid async for short tasks — the polling overhead negates the benefit. Keep
-the per-task two-stage review **synchronous**; async makes the review loop
-hard to follow.
+Watch `needs_attention` signals. Check `subagent({ action: "status" })` before
+interrupting a quiet run; silence during tools or tests is normal. If genuinely
+stuck, use `subagent({ action: "interrupt", id: "<run-id>" })` and re-dispatch
+with materially clearer instructions.
 
-## Worktree Isolation (Rare)
+## Simplify and Formal Parallel Review
 
-The default per-task flow is sequential: one worker writes at a time, two
-reviewers read after. Worktrees aren't needed.
+After all worker tasks are complete, run `simplify` once on the explicit
+`base_sha..HEAD` plan range. Apply its appropriate cleanup, run verification,
+and make one cleanup commit if it changed files. Capture `review_head` only
+after that cleanup commit (or after confirming no cleanup was needed).
 
-If a plan genuinely has independent parallel tasks (rare — and a sign the
-plan should probably be split), use `worktree: true`:
+Create an OS temporary directory, then write both reviewer prompts there. Each
+prompt receives the same inputs: full plan, `base_sha`, `review_head`, branch
+summary/diff summary, and verification commands plus results. They differ only
+in their review lens and output path.
 
 ```typescript
+const reviewDir = await fs.mkdtemp(path.join(os.tmpdir(), "final-review-"));
+const finalPrompt = path.join(reviewDir, "final-reviewer-prompt.md");
+const qualityPrompt = path.join(reviewDir, "code-quality-reviewer-prompt.md");
+const finalOutput = path.join(reviewDir, "final-spec-integration-findings.md");
+const qualityOutput = path.join(reviewDir, "code-quality-findings.md");
+
+await fs.writeFile(finalPrompt, `<plan, base_sha, review_head, summary, verification inputs>`);
+await fs.writeFile(qualityPrompt, `<plan, base_sha, review_head, summary, verification inputs; use requesting-code-review criteria>`);
+
 subagent({
   tasks: [
-    { agent: "worker", task: "<task A prompt>" },
-    { agent: "worker", task: "<task B prompt>" }
+    { agent: "reviewer", task: `Read ${finalPrompt}; write findings only to ${finalOutput}. Do not edit.`, context: "fresh" },
+    { agent: "reviewer", task: `Read ${qualityPrompt}; write findings only to ${qualityOutput}. Do not edit.`, context: "fresh" }
   ],
-  worktree: true,
+  context: "fresh",
   concurrency: 2
 })
 ```
 
-Each parallel worker gets its own git worktree branched from HEAD. Requires
-clean git state. Reviews still happen sequentially after the parallel writes
-land.
+Both reviewers are read-only. The final spec/integration prompt checks every
+plan requirement, omissions, regressions, and interactions across tasks. The
+quality prompt follows `requesting-code-review` and checks maintainability,
+correctness risks, tests, and project conventions. Do not call these reviewers
+sequentially, fork their context, or start formal review before `simplify`.
+
+## Finding Disposition and Fixes
+
+Synthesize the two reports into one disposition. Critical and Important
+findings block completion. Reject duplicate, false-positive, out-of-scope, and
+plan-contradicted findings with a recorded reason. Minor findings are deferred
+when no fixer is needed.
+
+When accepted blockers remain, dispatch one fixer: a **single** fresh worker
+with all accepted blockers plus only Minor items that are cheap, safe, and in
+scope.
+The fixer receives the plan, `base_sha`, `review_head`, both reports, the
+explicit accepted/rejected disposition, and full-plan verification commands.
+It fixes the accepted set, runs complete plan verification, self-reviews, and
+commits once. Do not dispatch a second fixer as an automatic loop.
+
+After a fixer, or after finding synthesis when no fix is needed, run full-plan
+verification and inspect the final `base_sha..HEAD` diff. This is the terminal
+`verification-before-completion` gate. Only then use
+`finishing-a-development-branch`.
 
 ## Prompt Templates
 
-Adjacent files contain the substitutable prompt content for each role. Read
-them once before dispatching, then paste their content into the `task` field
-with placeholders filled in.
+The controller uses these prompt names. `implementer-prompt.md` is the worker
+template; the two reviewer prompts are created in the OS temporary directory
+for the shared review head.
 
-- `./implementer-prompt.md` — content for `agent: "worker"`
-- `./spec-reviewer-prompt.md` — content for `agent: "reviewer"` (spec-compliance pass)
-- `./code-quality-reviewer-prompt.md` — content for `agent: "reviewer"` (code-quality pass)
+- `./implementer-prompt.md` - content for each `worker` task
+- `final-reviewer-prompt.md` - temporary, read-only final spec/integration prompt
+- `code-quality-reviewer-prompt.md` - temporary, read-only quality prompt based on `requesting-code-review`
 
 ## Example Workflow
 
+```text
+[Read approved plan; capture base_sha; extract Tasks 1 and 2; create todos]
+
+Task 1:
+  subagent({ agent: "worker", task: "<implementer-prompt Task 1>", context: "fresh" })
+  Worker reports DONE with commit and passing tests.
+  Controller checks evidence and marks Task 1 complete.
+
+Task 2:
+  subagent({ agent: "worker", task: "<implementer-prompt Task 2>", context: "fresh" })
+  Worker reports DONE_WITH_CONCERNS; controller resolves a scope concern,
+  checks the resulting evidence, and marks Task 2 complete.
+
+[No intermediate reviewers were dispatched.]
+[Run simplify on base_sha..HEAD; verify cleanup; commit cleanup.]
+[Capture review_head. Create OS temp prompts with shared plan/base/head/summary/verification inputs.]
+subagent({
+  tasks: [
+    { agent: "reviewer", task: "<final-reviewer-prompt; write final output; do not edit>", context: "fresh" },
+    { agent: "reviewer", task: "<code-quality-reviewer-prompt; write quality output; do not edit>", context: "fresh" }
+  ],
+  context: "fresh",
+  concurrency: 2
+})
+[Synthesize and disposition both reports.]
+[If accepted blockers exist, one fresh fixer handles the accepted set, verifies the full plan, and commits once.]
+[Run final full-plan verification and inspect base_sha..HEAD.]
+[Use finishing-a-development-branch.]
 ```
-You: I'm using Subagent-Driven Development to execute this plan.
-
-[Read plan file once: docs/pi/plans/feature-plan.md]
-[Extract all 5 tasks with full text and context]
-[Create todo list with all tasks]
-
-# Task 1: Hook installation script
-
-[Get Task 1 text and context (already extracted)]
-[Build ./implementer-prompt.md content with placeholders filled]
-
-subagent({
-  agent: "worker",
-  task: "<implementer prompt for Task 1>",
-  context: "fresh"
-})
-
-Worker: "Before I begin - should the hook be installed at user or system level?"
-
-You: [re-dispatch with answer added to context]
-subagent({
-  agent: "worker",
-  task: "<original prompt> ... ANSWER: User level (~/.config/pi/hooks/)",
-  context: "fresh"
-})
-
-Worker reports:
-  - Status: DONE
-  - Implemented install-hook command
-  - Added tests, 5/5 passing
-  - Self-review: Found I missed --force flag, added it
-  - Committed at <sha>
-
-[Capture sha: 7f3a91b]
-[Build spec-reviewer prompt with task text + worker report]
-
-subagent({
-  agent: "reviewer",
-  task: "<spec compliance prompt for Task 1>",
-  context: "fresh"
-})
-
-Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
-
-[Build code-quality-reviewer prompt with SHAs (base..7f3a91b) and diff summary]
-
-subagent({
-  agent: "reviewer",
-  task: "<code quality prompt for Task 1>",
-  context: "fresh"
-})
-
-Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
-
-[Mark Task 1 complete in todo list]
-
-# Task 2: Recovery modes
-
-[Same flow]
-
-Worker reports DONE at <sha>.
-
-Spec reviewer: ❌ Issues:
-  - Missing: Progress reporting (spec says "report every 100 items")
-  - Extra: Added --json flag (not requested)
-
-[Re-dispatch worker with prefix listing issues]
-subagent({
-  agent: "worker",
-  task: "You previously implemented Task 2. Reviewer found:\n- Missing progress reporting\n- Remove --json flag\n\nFix exactly these. <original task body>",
-  context: "fresh"
-})
-
-Worker: Removed --json flag, added progress reporting. New sha.
-
-Spec reviewer (re-review): ✅ Spec compliant now
-
-Code reviewer: Strengths: Solid. Issues (Important): Magic number (100)
-
-[Re-dispatch worker]
-Worker: Extracted PROGRESS_INTERVAL constant.
-
-Code reviewer (re-review): ✅ Approved
-
-[Mark Task 2 complete in todo list]
-
-...
-
-# After all tasks
-subagent({
-  agent: "reviewer",
-  task: "Final review of feature/<branch> against docs/pi/plans/feature-plan.md. ...",
-  context: "fresh"
-})
-
-Final reviewer: All requirements met, ready to merge.
-
-[Hand off to finishing-a-development-branch]
-
-Done!
-```
-
-## Advantages
-
-**vs. Manual execution:**
-- Workers follow TDD naturally (driven by `./implementer-prompt.md`)
-- Fresh context per task (no confusion)
-- Reviewers stay independent (`context: "fresh"` keeps them adversarial)
-- Worker can ask questions (before AND during work)
-
-**Workflow summary:**
-- Same session (no handoff to a new chat)
-- Continuous progress (no waiting between tasks)
-- Review checkpoints automatic
-
-**Efficiency gains:**
-- No file reading overhead — controller pastes full task text into `task`
-- Controller curates exactly the context the worker needs
-- Workers get complete information upfront
-- Questions surfaced before work begins
-
-**Quality gates:**
-- Self-review catches issues before handoff
-- Two-stage review: spec compliance, then code quality
-- Review loops ensure fixes actually work
-- Spec compliance prevents over/under-building
-- Code quality ensures the implementation is well-built
-
-**Cost:**
-- More subagent invocations (worker + ≥2 reviewers per task)
-- Controller does more prep work (extracting all tasks upfront)
-- Review loops add iterations
-- Catches issues early — cheaper than debugging later
 
 ## Red Flags
 
 **Never:**
-- Start implementation on `main` / `master` without explicit user consent
-- Skip reviews (spec compliance OR code quality)
-- Proceed with unfixed issues
-- Dispatch multiple worker subagents in parallel against the same files (conflicts) — use `worktree: true` if you really need parallel writes
-- Make a worker read the plan file (paste the task text into `task` instead)
-- Skip scene-setting context (worker needs to understand where the task fits)
-- Ignore worker questions (answer before letting them proceed)
-- Accept "close enough" on spec compliance
-- Skip review re-runs (reviewer found issues = worker fixes = review again)
-- Let worker self-review replace actual reviewer dispatch
-- **Start code quality review before spec compliance is ✅** (wrong order)
-- Move to the next task while either review has open issues
-- Use `context: "fork"` for reviewers — it inherits parent bias
-- Use `oracle` as a per-task reviewer (it's forked advisory, not fresh adversarial)
-
-**If a worker asks questions:**
-- Answer clearly and completely
-- Provide additional context if needed
-- Don't rush them into implementation
-
-**If a reviewer finds issues:**
-- Re-dispatch the **worker** (not the reviewer) with the issues prefixed
-- Re-dispatch the same reviewer to re-check
-- Repeat until approved
-- Don't skip the re-review
-
-**If a worker reports BLOCKED:**
-- Provide more context, or re-dispatch with a more capable `model: "..."`
-- Don't try to fix manually — that pollutes your controller context
+- Dispatch a reviewer after each task or treat task completion as reviewer-gated
+- Call final reviewers sequentially instead of one parallel stage
+- Automatically re-review after a fixer or repeat review cycles without an explicit risk decision
+- Start formal review before ranged `simplify` and its cleanup verification
+- Capture the review head before the cleanup commit is complete
+- Permit parallel writes in the active worktree
+- Use `context: "fork"` for reviewers
+- Use `oracle` as a reviewer
+- Make a worker read the plan file instead of pasting the relevant task text
+- Ignore questions, NEEDS_CONTEXT, DONE_WITH_CONCERNS, or BLOCKED
+- Skip the final verification and diff inspection gate
 
 ## Integration
 
-**Required workflow skills:**
-- **writing-plans** — Creates the plan this skill executes.
-- **requesting-code-review** — Code review template referenced by `./code-quality-reviewer-prompt.md`.
-- **simplify** — Run after all task/review loops and the final branch review when the branch contains non-trivial code changes; skip for docs-only, tiny mechanical edits, or equivalent code-quality review with no findings.
-- **finishing-a-development-branch** — Run after all tasks, final review, and simplify when applicable.
-- **verification-before-completion** — Terminal gate for this workflow. Before claiming a task, review loop, final branch review, delegated agent result, or handoff is complete, run fresh verification and report evidence.
-
-**Skills the dispatched agents lean on:**
-- **test-driven-development** — Workers follow TDD per task.
-- **pi-subagents** — Tool reference for `subagent({...})` calls; read it first if you're unsure about a parameter.
-
+- **writing-plans** supplies the approved plan and is required before dispatch.
+- **requesting-code-review** supplies the basis for the code-quality reviewer
+  prompt.
+- **simplify** runs once before formal review, explicitly over `base_sha..HEAD`.
+- **verification-before-completion** is the terminal gate after synthesis and
+  any fixer work.
+- **finishing-a-development-branch** starts only after review, accepted fixes,
+  full-plan verification, and final diff inspection are complete.
+- **test-driven-development** guides worker implementation, and
+  **pi-subagents** documents dispatch controls.
