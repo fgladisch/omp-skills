@@ -37,7 +37,7 @@ by the implementation; do not rerun the full verification suite.
 
 ## Scope
 
-Read `WORKING_DIRECTORY/skills/requesting-code-review/code-reviewer.md` and
+Read `../requesting-code-review/code-reviewer.md` and
 apply its Code Quality, Architecture, Testing, and Production Readiness checks.
 Skip its Requirements section because the parallel final reviewer owns plan
 compliance. Check naming, consistency with project conventions, and concurrency
