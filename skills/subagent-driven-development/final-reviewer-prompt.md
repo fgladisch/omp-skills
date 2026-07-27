@@ -1,8 +1,9 @@
 # Final Reviewer Prompt Template
 
-This file's content is the **`task` string** for an `agent: "reviewer"`
-dispatch. Dispatch it in parallel with `code-quality-reviewer-prompt.md` only
-after every task in the plan and the simplify cleanup are complete.
+This file contains controller instructions followed by the reviewer task body.
+Fill the placeholders and pass only the content below the `---` delimiter as the
+`task` string. Dispatch it in parallel with `code-quality-reviewer-prompt.md`
+only after every task in the plan and the simplify cleanup are complete.
 
 ```typescript
 subagent({
@@ -32,12 +33,13 @@ BASE_SHA:               [SHA before plan implementation]
 HEAD_SHA:               [SHA after the simplify cleanup commit]
 WORKER_SUMMARIES:       [all worker summaries]
 VERIFICATION_COMMANDS:  [all plan verification commands]
+VERIFICATION_RESULTS:   [recorded command results from the completed plan]
 ```
 
 Read the full plan at `PLAN_PATH`, inspect the current files at `HEAD_SHA`,
-and use the exact base-to-head range above. Run the supplied verification
-commands when the environment permits and assess their evidence for the
-completed result.
+and use the exact base-to-head range above. Assess the supplied verification
+evidence. Run only targeted checks when that evidence is missing, stale, or
+contradicted by the implementation; do not rerun the full verification suite.
 
 ## Scope
 

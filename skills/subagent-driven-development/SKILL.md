@@ -145,19 +145,27 @@ and make one cleanup commit if it changed files. Capture `review_head` only
 after that cleanup commit (or after confirming no cleanup was needed).
 
 Read the adjacent source templates `./final-reviewer-prompt.md` and
-`./code-quality-reviewer-prompt.md`, substitute their placeholders with the
-same inputs (full plan, `base_sha`, `review_head`, branch summary/diff summary,
-and verification commands plus results), and pass each complete filled template
-directly as its reviewer task. Create an OS temporary directory only for the
-two distinct reviewer output artifacts.
+`./code-quality-reviewer-prompt.md`. In each file, substitute the placeholders
+in the task body below the `---` delimiter, then pass only that filled task body
+to the reviewer. Both tasks receive the same inputs: plan path, `base_sha`,
+`review_head`, branch and implementation summaries, verification commands, and
+recorded verification results.
+
+Create an OS temporary directory only for the two output artifacts:
+
+```bash
+tmp_dir=${TMPDIR:-/tmp}
+review_dir=$(mktemp -d "${tmp_dir%/}/final-review-XXXXXX")
+echo "$review_dir"
+```
+
+Substitute the returned path for `<review-dir>`:
 
 ```typescript
-const reviewDir = await fs.mkdtemp(path.join(os.tmpdir(), "final-review-"));
-
 subagent({
   tasks: [
-    { agent: "reviewer", task: "<filled ./final-reviewer-prompt.md>", output: "<temp-dir>/final-review.md" },
-    { agent: "reviewer", task: "<filled ./code-quality-reviewer-prompt.md>", output: "<temp-dir>/code-quality-review.md" }
+    { agent: "reviewer", task: "<filled task body from ./final-reviewer-prompt.md>", output: "<review-dir>/final-review.md" },
+    { agent: "reviewer", task: "<filled task body from ./code-quality-reviewer-prompt.md>", output: "<review-dir>/code-quality-review.md" }
   ],
   context: "fresh",
   concurrency: 2
@@ -180,11 +188,29 @@ when no fixer is needed.
 
 When accepted blockers remain, dispatch one fixer: a **single** fresh worker
 with all accepted blockers plus only Minor items that are cheap, safe, and in
-scope.
-The fixer receives the plan, `base_sha`, `review_head`, both reports, the
-explicit accepted/rejected disposition, and full-plan verification commands.
-It fixes the accepted set, runs complete plan verification, self-reviews, and
-commits once. Do not dispatch a second fixer as an automatic loop.
+scope. Its filled task must include:
+
+```text
+Plan: <absolute plan path>
+Review range: <base_sha>..<review_head>
+Final review report: <path or full content>
+Code-quality report: <path or full content>
+Accepted findings: <deduplicated list to fix>
+Rejected findings: <list with reasons; do not implement>
+Constraints: preserve approved scope; do not make product or architecture
+  decisions; ask the controller if a finding requires one.
+Verification: <complete plan verification commands>
+Report: status, summary, verification commands and results, changed files,
+  commit SHA, self-review findings, and remaining concerns.
+```
+
+Dispatch it with `agent: "worker"` and `context: "fresh"`. It fixes only the
+accepted set, runs complete plan verification, self-reviews, and commits once.
+Do not dispatch a second fixer as an automatic loop.
+
+After both review reports have been read and dispositioned, remove the output
+directory with `rm -rf "$review_dir"`; also clean it up before stopping after a
+failed or interrupted review call.
 
 After a fixer, or after finding synthesis when no fix is needed, run full-plan
 verification and inspect the final `base_sha..HEAD` diff. This is the terminal
@@ -193,8 +219,9 @@ verification and inspect the final `base_sha..HEAD` diff. This is the terminal
 
 ## Prompt Templates
 
-The controller uses these adjacent source templates. It fills their placeholders
-before dispatch; reviewer output artifacts are separate OS-temporary files.
+The controller uses these adjacent source templates. It fills the placeholders
+in each task body below `---` before dispatch; reviewer output artifacts are
+separate OS-temporary files.
 
 - `./implementer-prompt.md` - content for each `worker` task
 - `./final-reviewer-prompt.md` - final spec/integration reviewer task source
@@ -217,16 +244,17 @@ Task 2:
 
 [No intermediate reviewers were dispatched.]
 [Run simplify on base_sha..HEAD; verify cleanup; commit cleanup.]
-[Capture review_head. Fill the adjacent reviewer source templates with shared plan/base/head/summary/verification inputs. Create OS-temporary output artifacts.]
+[Capture review_head. Fill only the task bodies below `---` in the adjacent templates with shared plan/base/head/summary/verification inputs.]
+[Create review_dir with the mktemp snippet above.]
 subagent({
   tasks: [
-    { agent: "reviewer", task: "<filled ./final-reviewer-prompt.md>", output: "<temp-dir>/final-review.md" },
-    { agent: "reviewer", task: "<filled ./code-quality-reviewer-prompt.md>", output: "<temp-dir>/code-quality-review.md" }
+    { agent: "reviewer", task: "<filled final reviewer task body>", output: "<review-dir>/final-review.md" },
+    { agent: "reviewer", task: "<filled code-quality reviewer task body>", output: "<review-dir>/code-quality-review.md" }
   ],
   context: "fresh",
   concurrency: 2
 })
-[Synthesize and disposition both reports.]
+[Synthesize and disposition both reports, then remove review_dir.]
 [If accepted blockers exist, one fresh fixer handles the accepted set, verifies the full plan, and commits once.]
 [Run final full-plan verification and inspect base_sha..HEAD.]
 [Use finishing-a-development-branch.]
