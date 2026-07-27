@@ -49,20 +49,22 @@ Or ask: "This branch split from main - is that correct?"
 
 ### Step 3: Present Options
 
-Present exactly these 4 options:
+Use a single `user_select` call to present exactly these 4 options. Do not send a separate plain-text prompt before the tool call.
 
+```json
+{
+  "question": "Implementation complete. What would you like to do?",
+  "options": [
+    { "label": "Merge back to <base-branch> locally" },
+    { "label": "Push and create a Pull Request" },
+    { "label": "Keep the branch as-is (I'll handle it later)" },
+    { "label": "Discard this work" }
+  ],
+  "allowCustom": false
+}
 ```
-Implementation complete. What would you like to do?
 
-1. Merge back to <base-branch> locally
-2. Push and create a Pull Request
-3. Keep the branch as-is (I'll handle it later)
-4. Discard this work
-
-Which option?
-```
-
-**Don't add explanation** - keep options concise.
+Map the selected label to the matching option in Step 4. If the selection is cancelled, leave the branch and worktree unchanged. **Don't add explanation** - keep the prompt and options concise.
 
 ### Step 4: Execute Choice
 
