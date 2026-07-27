@@ -145,15 +145,13 @@ If the reviewer returns `Issues Found`, fix every blocking issue and repeat self
 
 After saving the plan, offer execution handoff:
 
-**"Plan complete and saved to `docs/pi/plans/<filename>.md`.
-
-If you want, I can execute it now with subagent-driven-development: fresh subagent per task plus two-stage review (spec compliance, then code quality). Want me to start?"**
+**"Plan complete and saved to docs/pi/plans/<filename>.md. If you want, I can execute it now with subagent-driven-development: fresh worker per task, then one parallel plan-level review stage after implementation and simplify. Want me to start?"**
 
 **If user says yes:**
 - **REQUIRED SUB-SKILL:** Use subagent-driven-development
-- Fresh subagent per task + two-stage review
+- Use a fresh worker per task, then one parallel plan-level review stage after implementation and simplify
 
 ## Related Skills
 
-- **subagent-driven-development** - Executes approved plans task-by-task with fresh workers and two-stage review.
+- **subagent-driven-development** - Executes approved plans task-by-task with fresh workers, followed by one parallel plan-level review stage after implementation and simplify.
 - **verification-before-completion** - Terminal gate for this workflow. Before claiming the plan, self-review, reviewer pass, or execution handoff is complete, run fresh verification and report evidence.

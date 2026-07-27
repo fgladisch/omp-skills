@@ -193,7 +193,7 @@ git worktree remove <worktree-path>
 ## Integration
 
 **Called by:**
-- **subagent-driven-development** - After all tasks and final review complete
+- **subagent-driven-development** - After all tasks, simplify cleanup, the parallel formal review stage, accepted fixes, and full-plan verification
 
 **Related skills:**
 - **simplify** - Use after tests pass and before presenting finish options when the branch contains non-trivial code changes.

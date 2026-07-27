@@ -12,9 +12,9 @@ Dispatch a pi `reviewer` subagent to catch issues before they cascade. The revie
 ## When to Request Review
 
 **Mandatory:**
-- After each task in subagent-driven development
-- After completing major feature
-- Before merge to main
+- After the complete implementation plan in subagent-driven development
+- After completing a major feature
+- Before merge to main, if no equivalent final review already ran
 
 **Optional but valuable:**
 - When stuck (fresh perspective)
@@ -83,9 +83,9 @@ You: [Fix progress indicators]
 ## Integration with Workflows
 
 **Subagent-Driven Development:**
-- Review after EACH task
-- Catch issues before they compound
-- Fix before moving to next task
+- After the complete implementation plan and simplify cleanup commit, dispatch final spec/integration and code-quality reviewers in parallel as one formal stage
+- Synthesize both reviews before assigning one fixer for accepted findings
+- Do not automatically re-review after fixes
 
 **Manual Batch Execution:**
 - Review after each batch (for example, every 2-3 tasks)
