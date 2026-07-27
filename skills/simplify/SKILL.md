@@ -7,9 +7,24 @@ description: Use after making code changes, before committing, or when the user 
 
 Review all changed files for reuse, quality, and efficiency. Fix any issues found.
 
+## Optional Comparison Range
+
+A caller may provide an explicit Git comparison range such as
+`<base-sha>..<head-sha>`. When supplied, review that committed range instead
+of the working tree. This is required for workflows whose changes were already
+committed, including `subagent-driven-development`.
+
 ## Phase 1: Identify Changes
 
-Run `git diff` (or `git diff HEAD` if there are staged changes) to see what changed. If there are no git changes, review the most recently modified files that the user mentioned or that you edited earlier in this conversation.
+Choose the review diff in this order:
+
+1. If the caller supplied a comparison range, run `git diff <base>..<head>`.
+2. Otherwise, run `git diff` (or `git diff HEAD` for staged changes).
+3. If the selected diff is empty, review the recently modified files named by
+   the user or changed earlier in the conversation.
+
+Record the selected range, working-tree diff, or fallback file scope and provide
+it to all three reviewers so they inspect exactly the same selected scope.
 
 ## Phase 2: Launch Three Review Agents in Parallel
 
@@ -30,21 +45,21 @@ subagent({
     {
       agent: "reviewer",
       task: "Code reuse review. Report findings only, do not edit files.\n\nDiff:\n<paste full diff>\n\n<paste Agent 1 instructions below>",
-      output: "<findings_dir>/reuse-findings.md"
+      output: "<findings_dir>/reuse-findings.md",
     },
     {
       agent: "reviewer",
       task: "Code quality review. Report findings only, do not edit files.\n\nDiff:\n<paste full diff>\n\n<paste Agent 2 instructions below>",
-      output: "<findings_dir>/quality-findings.md"
+      output: "<findings_dir>/quality-findings.md",
     },
     {
       agent: "reviewer",
       task: "Efficiency review. Report findings only, do not edit files.\n\nDiff:\n<paste full diff>\n\n<paste Agent 3 instructions below>",
-      output: "<findings_dir>/efficiency-findings.md"
-    }
+      output: "<findings_dir>/efficiency-findings.md",
+    },
   ],
-  concurrency: 3
-})
+  concurrency: 3,
+});
 ```
 
 If the diff is large, write it to a temp file in `findings_dir` and reference it by path in each task instead of inlining.

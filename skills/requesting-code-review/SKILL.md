@@ -12,11 +12,13 @@ Dispatch a pi `reviewer` subagent to catch issues before they cascade. The revie
 ## When to Request Review
 
 **Mandatory:**
-- After each task in subagent-driven development
-- After completing major feature
-- Before merge to main
+
+- After the complete implementation plan in subagent-driven development
+- After completing a major feature
+- Before merge to main, if no equivalent final review already ran
 
 **Optional but valuable:**
+
 - When stuck (fresh perspective)
 - Before refactoring (baseline check)
 - After fixing complex bug
@@ -24,6 +26,7 @@ Dispatch a pi `reviewer` subagent to catch issues before they cascade. The revie
 ## How to Request
 
 **1. Get git SHAs:**
+
 ```bash
 BASE_SHA=$(git rev-parse HEAD~1)  # or origin/main
 HEAD_SHA=$(git rev-parse HEAD)
@@ -40,6 +43,7 @@ subagent({ agent: "reviewer", task: <filled template>, context: "fresh" })
 The `subagent` tool comes from the `pi-subagents` extension.
 
 **Placeholders:**
+
 - `{WHAT_WAS_IMPLEMENTED}` - What you just built
 - `{PLAN_OR_REQUIREMENTS}` - What it should do
 - `{BASE_SHA}` - Starting commit
@@ -47,12 +51,16 @@ The `subagent` tool comes from the `pi-subagents` extension.
 - `{DESCRIPTION}` - Brief summary
 
 **3. Act on feedback:**
+
 - Fix Critical issues immediately
 - Fix Important issues before proceeding
 - Note Minor issues for later
 - Push back if reviewer is wrong (with reasoning)
 
-## Example
+## Manual/Ad-Hoc Review Example
+
+This example is for manual or ad-hoc work. Do not use this timing for
+subagent-driven development, which reviews after the completed plan.
 
 ```
 [Just completed Task 2: Add verification function]
@@ -83,30 +91,37 @@ You: [Fix progress indicators]
 ## Integration with Workflows
 
 **Subagent-Driven Development:**
-- Review after EACH task
-- Catch issues before they compound
-- Fix before moving to next task
+
+- After the complete implementation plan and simplify cleanup commit, dispatch final spec/integration and code-quality reviewers in parallel as one formal stage
+- Synthesize both reviews before assigning one fixer for accepted blocking findings
+- Defer Minor-only findings; do not dispatch a fixer for them
+- Do not automatically re-review after fixes
 
 **Manual Batch Execution:**
+
 - Review after each batch (for example, every 2-3 tasks)
 - Get feedback, apply, continue
 
 **Ad-Hoc Development:**
+
 - Review before merge
 - Review when stuck
 
 **Terminal Gate:**
+
 - Use **verification-before-completion** before claiming the review is complete, all findings are handled, the branch is ready, or requirements are met.
 
 ## Red Flags
 
 **Never:**
+
 - Skip review because "it's simple"
 - Ignore Critical issues
 - Proceed with unfixed Important issues
 - Argue with valid technical feedback
 
 **If reviewer wrong:**
+
 - Push back with technical reasoning
 - Show code/tests that prove it works
 - Request clarification

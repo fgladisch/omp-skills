@@ -1,83 +1,60 @@
 # Code Quality Reviewer Prompt Template
 
-This file's content is the **`task` string** for an `agent: "reviewer"`
-dispatch (second review pass — code quality).
-
-```typescript
-subagent({
-  agent: "reviewer",
-  task: `<everything below this line, with placeholders substituted>`,
-  context: "fresh"
-})
-```
-
-**Only dispatch after spec compliance review passes.** If spec compliance is
-still red, fix that loop first.
-
-**Purpose:** Verify the implementation is well-built — clean, tested,
-maintainable, well-decomposed.
+This file contains controller instructions followed by the reviewer task body.
+Fill the placeholders and pass only the content below the `---` delimiter as the
+`task` string. Dispatch it in parallel with `final-reviewer-prompt.md` only
+after every task in the plan and the simplify cleanup are complete. Use the
+coordinated parallel `subagent({ tasks: [...] })` call in `SKILL.md`; do not
+dispatch this template independently.
 
 ---
 
-You are performing a code quality review on a completed task.
+You are performing a whole branch code quality review of the completed plan.
 
-## CRITICAL: Read Only. Do Not Edit.
+## CRITICAL: Read Only. Findings Only.
 
-`pi-subagents` describes you as a "review-and-fix specialist", but in this
-workflow you must **only report findings**. The worker will fix anything you
-flag, then this review re-runs against the new SHAs.
+Do not edit files, fix findings, or make commits. Do not trust the worker
+summaries: independently inspect the repository and the exact completed-plan
+diff, `git diff <BASE_SHA>..<HEAD_SHA>`.
 
-## Use the Standard Code Review Template
-
-Apply the review structure from
-`../requesting-code-review/code-reviewer.md` (read it if you have
-not already), with the inputs below.
+## Inputs
 
 ```
-WHAT_WAS_IMPLEMENTED: [paste worker's summary here]
-PLAN_OR_REQUIREMENTS: Task N from [plan file path]
-BASE_SHA:             [sha before task]
-HEAD_SHA:             [sha after task]
-DESCRIPTION:          [one-sentence task summary]
+PLAN_PATH:              [absolute path to the plan]
+WORKING_DIRECTORY:      [absolute path]
+BRANCH:                 [branch name]
+BASE_SHA:               [SHA before plan implementation]
+HEAD_SHA:               [SHA after the simplify cleanup commit]
+WORKER_SUMMARIES:       [all worker summaries]
+VERIFICATION_COMMANDS:  [all plan verification commands]
+VERIFICATION_RESULTS:   [recorded command results from the completed plan]
 ```
 
-Working directory: [absolute path]
-Branch:            [branch name]
+Read the plan for context, inspect the current files at `HEAD_SHA`, and use
+the exact base-to-head range above. Assess the supplied verification evidence.
+Run only targeted checks when that evidence is missing, stale, or contradicted
+by the implementation; do not rerun the full verification suite.
 
-You can inspect:
-- The diff: `git diff <BASE_SHA>..<HEAD_SHA>`
-- The current files at HEAD
-- Test output for any commands the plan defined
+## Scope
 
-## Standard Code Quality Concerns
+Read `../requesting-code-review/code-reviewer.md` and
+apply its Code Quality, Architecture, Testing, and Production Readiness checks.
+Skip its Requirements section because the parallel final reviewer owns plan
+compliance. Check naming, consistency with project conventions, and concurrency
+risks. For every issue, follow the canonical template's evidence rules: cite
+the location, explain what is wrong and why it matters, and give a fix when it
+is not obvious. Also check dead code and boundary leaks introduced by this
+branch.
 
-Apply your usual checks:
-
-- Correctness — does the code do what its tests claim?
-- Robustness — error handling, null safety, concurrency, abort paths
-- Tests — are they meaningful, do they assert behavior rather than mock interactions?
-- Naming — clear, accurate, consistent
-- Style — follows the project's existing patterns and lint rules
-- Security — input validation, secret handling, injection surfaces
-- Performance — obvious inefficiencies (not premature optimization)
-
-## Plus, Specific to This Workflow
-
-- Does each new or modified file have **one clear responsibility** with a well-defined interface?
-- Are units decomposed so they can be **understood and tested independently**?
-- Is the implementation following the **file structure from the plan**?
-- Did this change create new files that are already large, or significantly grow existing files? (Don't flag pre-existing file sizes — focus on what this commit contributed.)
-- Any **dead code** introduced and forgotten (unused exports, commented blocks, leftover scaffolding)?
-- Any **leaks across boundaries** the plan tried to set up (e.g. a tracker module reaching into orchestrator state)?
+Do not perform line-by-line plan compliance or report missing or extra product
+requirements. The parallel final reviewer owns specification and cross-task
+integration compliance.
 
 ## Report Format
 
-Use the template's output structure:
-
 ```
 Strengths:
-  - <what's done well>
-  - ...
+  - <what is well-built>
 
 Issues:
   Critical:
@@ -90,10 +67,7 @@ Issues:
 Assessment: APPROVED | NEEDS CHANGES
 ```
 
-`APPROVED` means no Critical or Important issues. Minor issues may still be
-listed for follow-up but should not block. `NEEDS CHANGES` means the worker
-must fix the listed Critical / Important items, after which this review
-re-runs against the new SHAs.
-
-Be specific: cite file paths and line numbers for every issue. The worker
-will fix exactly what you list.
+Cite a file path and line number for every issue where applicable.
+`APPROVED` means there are no Critical or Important findings. Minor findings
+may be listed without blocking approval. `NEEDS CHANGES` means Critical or
+Important findings exist. Do not request or assume a re-review.
