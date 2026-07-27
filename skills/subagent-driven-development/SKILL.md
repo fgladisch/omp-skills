@@ -30,7 +30,7 @@ controller focused on coordination and evidence.
 | Role | Builtin agent | Timing and responsibility |
 |---|---|---|
 | Implementer | `worker` | Once per plan task, in plan order; implements, tests, self-reviews, and commits. |
-| Simplify reviewers | `simplify` | Once after all tasks; use its three review angles over the explicit plan range. |
+| Simplify reviewers | `reviewer` | Once after all tasks; use its three review angles over the explicit plan range. |
 | Final spec/integration reviewer | `reviewer` | Once in the formal parallel review stage; checks the complete plan and cross-task integration. |
 | Code-quality reviewer | `reviewer` | Once in that same formal parallel stage; uses the `requesting-code-review` basis. |
 | Fixer | `worker` | At most once, only when accepted blocking findings require changes. |
@@ -144,36 +144,32 @@ After all worker tasks are complete, run `simplify` once on the explicit
 and make one cleanup commit if it changed files. Capture `review_head` only
 after that cleanup commit (or after confirming no cleanup was needed).
 
-Create an OS temporary directory, then write both reviewer prompts there. Each
-prompt receives the same inputs: full plan, `base_sha`, `review_head`, branch
-summary/diff summary, and verification commands plus results. They differ only
-in their review lens and output path.
+Read the adjacent source templates `./final-reviewer-prompt.md` and
+`./code-quality-reviewer-prompt.md`, substitute their placeholders with the
+same inputs (full plan, `base_sha`, `review_head`, branch summary/diff summary,
+and verification commands plus results), and pass each complete filled template
+directly as its reviewer task. Create an OS temporary directory only for the
+two distinct reviewer output artifacts.
 
 ```typescript
 const reviewDir = await fs.mkdtemp(path.join(os.tmpdir(), "final-review-"));
-const finalPrompt = path.join(reviewDir, "final-reviewer-prompt.md");
-const qualityPrompt = path.join(reviewDir, "code-quality-reviewer-prompt.md");
-const finalOutput = path.join(reviewDir, "final-spec-integration-findings.md");
-const qualityOutput = path.join(reviewDir, "code-quality-findings.md");
-
-await fs.writeFile(finalPrompt, `<plan, base_sha, review_head, summary, verification inputs>`);
-await fs.writeFile(qualityPrompt, `<plan, base_sha, review_head, summary, verification inputs; use requesting-code-review criteria>`);
 
 subagent({
   tasks: [
-    { agent: "reviewer", task: `Read ${finalPrompt}; write findings only to ${finalOutput}. Do not edit.`, context: "fresh" },
-    { agent: "reviewer", task: `Read ${qualityPrompt}; write findings only to ${qualityOutput}. Do not edit.`, context: "fresh" }
+    { agent: "reviewer", task: "<filled ./final-reviewer-prompt.md>", output: "<temp-dir>/final-review.md" },
+    { agent: "reviewer", task: "<filled ./code-quality-reviewer-prompt.md>", output: "<temp-dir>/code-quality-review.md" }
   ],
   context: "fresh",
   concurrency: 2
 })
 ```
 
-Both reviewers are read-only. The final spec/integration prompt checks every
-plan requirement, omissions, regressions, and interactions across tasks. The
-quality prompt follows `requesting-code-review` and checks maintainability,
-correctness risks, tests, and project conventions. Do not call these reviewers
-sequentially, fork their context, or start formal review before `simplify`.
+Both reviewers are read-only; their configured output artifacts record the
+returned findings. The final spec/integration prompt checks every plan
+requirement, omissions, regressions, and interactions across tasks. The quality
+prompt follows `requesting-code-review` and checks maintainability, correctness
+risks, tests, and project conventions. Do not call these reviewers sequentially,
+fork their context, or start formal review before `simplify`.
 
 ## Finding Disposition and Fixes
 
@@ -197,13 +193,12 @@ verification and inspect the final `base_sha..HEAD` diff. This is the terminal
 
 ## Prompt Templates
 
-The controller uses these prompt names. `implementer-prompt.md` is the worker
-template; the two reviewer prompts are created in the OS temporary directory
-for the shared review head.
+The controller uses these adjacent source templates. It fills their placeholders
+before dispatch; reviewer output artifacts are separate OS-temporary files.
 
 - `./implementer-prompt.md` - content for each `worker` task
-- `final-reviewer-prompt.md` - temporary, read-only final spec/integration prompt
-- `code-quality-reviewer-prompt.md` - temporary, read-only quality prompt based on `requesting-code-review`
+- `./final-reviewer-prompt.md` - final spec/integration reviewer task source
+- `./code-quality-reviewer-prompt.md` - quality reviewer task source based on `requesting-code-review`
 
 ## Example Workflow
 
@@ -222,11 +217,11 @@ Task 2:
 
 [No intermediate reviewers were dispatched.]
 [Run simplify on base_sha..HEAD; verify cleanup; commit cleanup.]
-[Capture review_head. Create OS temp prompts with shared plan/base/head/summary/verification inputs.]
+[Capture review_head. Fill the adjacent reviewer source templates with shared plan/base/head/summary/verification inputs. Create OS-temporary output artifacts.]
 subagent({
   tasks: [
-    { agent: "reviewer", task: "<final-reviewer-prompt; write final output; do not edit>", context: "fresh" },
-    { agent: "reviewer", task: "<code-quality-reviewer-prompt; write quality output; do not edit>", context: "fresh" }
+    { agent: "reviewer", task: "<filled ./final-reviewer-prompt.md>", output: "<temp-dir>/final-review.md" },
+    { agent: "reviewer", task: "<filled ./code-quality-reviewer-prompt.md>", output: "<temp-dir>/code-quality-review.md" }
   ],
   context: "fresh",
   concurrency: 2
