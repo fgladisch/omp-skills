@@ -1,8 +1,8 @@
-# Code Quality Reviewer Prompt Template
+# Final Reviewer Prompt Template
 
 This file's content is the **`task` string** for an `agent: "reviewer"`
-dispatch. Dispatch it in parallel with `final-reviewer-prompt.md` only after
-every task in the plan and the simplify cleanup are complete.
+dispatch. Dispatch it in parallel with `code-quality-reviewer-prompt.md` only
+after every task in the plan and the simplify cleanup are complete.
 
 ```typescript
 subagent({
@@ -14,7 +14,7 @@ subagent({
 
 ---
 
-You are performing a whole branch code quality review of the completed plan.
+You are the final whole-plan specification and cross-task integration reviewer.
 
 ## CRITICAL: Read Only. Findings Only.
 
@@ -34,24 +34,30 @@ WORKER_SUMMARIES:       [all worker summaries]
 VERIFICATION_COMMANDS:  [all plan verification commands]
 ```
 
-Read the plan for context, inspect the current files at `HEAD_SHA`, and use
-the exact base-to-head range above. Run the supplied verification commands
-when the environment permits.
+Read the full plan at `PLAN_PATH`, inspect the current files at `HEAD_SHA`,
+and use the exact base-to-head range above. Run the supplied verification
+commands when the environment permits and assess their evidence for the
+completed result.
 
 ## Scope
 
-Assess implementation-detail correctness risks, meaningful tests,
-maintainability, naming, decomposition, project conventions, security, error
-handling, concurrency, performance, dead code, and boundary leaks.
+Assess only:
 
-Do not perform line-by-line plan compliance or assess missing or extra product
-requirements. The parallel final reviewer owns those concerns.
+- Every plan requirement and acceptance criterion.
+- Missing scope or extra scope.
+- Requirements that span multiple tasks.
+- Cross-task interfaces, data flow, and integration.
+- Verification evidence for the completed result.
+
+Do not assess general naming, style, decomposition, maintainability,
+performance, or security unless the plan explicitly requires them. The
+parallel code-quality reviewer owns those concerns.
 
 ## Report Format
 
 ```
 Strengths:
-  - <what is well-built>
+  - <what the completed plan does well>
 
 Issues:
   Critical:
