@@ -27,13 +27,13 @@ controller focused on coordination and evidence.
 
 ## Agent Selection
 
-| Role | Builtin agent | Timing and responsibility |
-|---|---|---|
-| Implementer | `worker` | Once per plan task, in plan order; implements, tests, self-reviews, and commits. |
-| Simplify reviewers | `reviewer` | Once after all tasks; use its three review angles over the explicit plan range. |
-| Final spec/integration reviewer | `reviewer` | Once in the formal parallel review stage; checks the complete plan and cross-task integration. |
-| Code-quality reviewer | `reviewer` | Once in that same formal parallel stage; uses the `requesting-code-review` basis. |
-| Fixer | `worker` | At most once, only when accepted blocking findings require changes. |
+| Role                            | Builtin agent | Timing and responsibility                                                                      |
+| ------------------------------- | ------------- | ---------------------------------------------------------------------------------------------- |
+| Implementer                     | `worker`      | Once per plan task, in plan order; implements, tests, self-reviews, and commits.               |
+| Simplify reviewers              | `reviewer`    | Once after all tasks; use its three review angles over the explicit plan range.                |
+| Final spec/integration reviewer | `reviewer`    | Once in the formal parallel review stage; checks the complete plan and cross-task integration. |
+| Code-quality reviewer           | `reviewer`    | Once in that same formal parallel stage; uses the `requesting-code-review` basis.              |
+| Fixer                           | `worker`      | At most once, only when accepted blocking findings require changes.                            |
 
 Use `context: "fresh"` for every worker and reviewer. Fresh reviewers are
 read-only and adversarial. Do not use `oracle` as a reviewer: it is a
@@ -104,8 +104,8 @@ text and scene-setting context into `./implementer-prompt.md`, then dispatch:
 subagent({
   agent: "worker",
   task: `<full content of ./implementer-prompt.md with task fields filled>`,
-  context: "fresh"
-})
+  context: "fresh",
+});
 ```
 
 Workers must self-review, run relevant verification, commit their task, and
@@ -137,8 +137,13 @@ in the active worktree.
 Long worker runs may be asynchronous when polling improves control:
 
 ```typescript
-subagent({ agent: "worker", task: "<implementer prompt>", context: "fresh", async: true })
-subagent({ action: "status", id: "<run-id>" })
+subagent({
+  agent: "worker",
+  task: "<implementer prompt>",
+  context: "fresh",
+  async: true,
+});
+subagent({ action: "status", id: "<run-id>" });
 ```
 
 Watch `needs_attention` signals. Check `subagent({ action: "status" })` before
@@ -177,12 +182,20 @@ Substitute the returned path for `<review-dir>`:
 ```typescript
 subagent({
   tasks: [
-    { agent: "reviewer", task: "<filled task body from ./final-reviewer-prompt.md>", output: "<review-dir>/final-review.md" },
-    { agent: "reviewer", task: "<filled task body from ./code-quality-reviewer-prompt.md>", output: "<review-dir>/code-quality-review.md" }
+    {
+      agent: "reviewer",
+      task: "<filled task body from ./final-reviewer-prompt.md>",
+      output: "<review-dir>/final-review.md",
+    },
+    {
+      agent: "reviewer",
+      task: "<filled task body from ./code-quality-reviewer-prompt.md>",
+      output: "<review-dir>/code-quality-review.md",
+    },
   ],
   context: "fresh",
-  concurrency: 2
-})
+  concurrency: 2,
+});
 ```
 
 Both reviewers are read-only; their configured output artifacts record the
@@ -278,6 +291,7 @@ subagent({
 ## Red Flags
 
 **Never:**
+
 - Dispatch a reviewer after each task or treat task completion as reviewer-gated
 - Call final reviewers sequentially instead of one parallel stage
 - Automatically re-review after a fixer or repeat review cycles without an explicit risk decision

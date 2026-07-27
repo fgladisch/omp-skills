@@ -27,6 +27,7 @@
 ### Task 1: Add explicit comparison ranges to `simplify`
 
 **Files:**
+
 - Modify: `skills/simplify/SKILL.md:8-16`
 
 - [ ] **Step 1: Document the optional range input before Phase 1**
@@ -85,6 +86,7 @@ Expected: one commit containing only `skills/simplify/SKILL.md`.
 ### Task 2: Define the two final reviewer contracts
 
 **Files:**
+
 - Create: `skills/subagent-driven-development/final-reviewer-prompt.md`
 - Modify: `skills/subagent-driven-development/code-quality-reviewer-prompt.md`
 - Delete: `skills/subagent-driven-development/spec-reviewer-prompt.md`
@@ -119,6 +121,7 @@ Verification commands: [commands required by the plan]
 ## Scope
 
 Check only:
+
 - Every plan requirement and acceptance criterion is implemented.
 - No unrequested behavior or scope was added.
 - Requirements spanning tasks work together coherently.
@@ -134,15 +137,16 @@ Inspect `git diff <base>..<head>`, resulting files at HEAD, and relevant tests.
 ## Report Format
 
 Strengths:
-  - <evidence-backed strength>
-Issues:
-  Critical:
-    - <plan or integration blocker with file:line>
-  Important:
-    - <material mismatch with file:line>
-  Minor:
-    - <non-blocking observation with file:line>
-Assessment: APPROVED | NEEDS CHANGES
+
+- <evidence-backed strength>
+  Issues:
+    Critical:
+      - <plan or integration blocker with file:line>
+    Important:
+      - <material mismatch with file:line>
+    Minor:
+      - <non-blocking observation with file:line>
+  Assessment: APPROVED | NEEDS CHANGES
 
 APPROVED means no Critical or Important findings. Do not request or assume a
 re-review. The controller owns finding disposition and verification.
@@ -214,6 +218,7 @@ Expected: one commit containing the new final prompt, rewritten quality prompt, 
 ### Task 3: Rewrite the subagent-driven development workflow
 
 **Files:**
+
 - Modify: `skills/subagent-driven-development/SKILL.md`
 
 - [ ] **Step 1: Replace the opening review contract**
@@ -234,13 +239,13 @@ Remove every claim that review happens after each task or that spec review must 
 
 The role table must contain:
 
-| Role | Builtin agent | Timing |
-|------|---------------|--------|
-| Implementer | `worker` | Once per plan task, sequentially |
-| Simplify reviewers | `reviewer` | Once after all tasks, three parallel cleanup angles |
-| Final spec/integration reviewer | `reviewer` | In the single formal parallel review stage |
-| Code-quality reviewer | `reviewer` | In the same formal parallel review stage |
-| Fixer | `worker` | At most once when accepted blockers exist |
+| Role                            | Builtin agent | Timing                                              |
+| ------------------------------- | ------------- | --------------------------------------------------- |
+| Implementer                     | `worker`      | Once per plan task, sequentially                    |
+| Simplify reviewers              | `reviewer`    | Once after all tasks, three parallel cleanup angles |
+| Final spec/integration reviewer | `reviewer`    | In the single formal parallel review stage          |
+| Code-quality reviewer           | `reviewer`    | In the same formal parallel review stage            |
+| Fixer                           | `worker`      | At most once when accepted blockers exist           |
 
 Use this process ordering in the DOT graph:
 
@@ -273,17 +278,17 @@ subagent({
     {
       agent: "reviewer",
       task: "<filled ./final-reviewer-prompt.md>",
-      output: "<temp-dir>/final-review.md"
+      output: "<temp-dir>/final-review.md",
     },
     {
       agent: "reviewer",
       task: "<filled ./code-quality-reviewer-prompt.md>",
-      output: "<temp-dir>/code-quality-review.md"
-    }
+      output: "<temp-dir>/code-quality-review.md",
+    },
   ],
   context: "fresh",
-  concurrency: 2
-})
+  concurrency: 2,
+});
 ```
 
 Require an OS temp directory for distinct report files. Both reviewers must be read-only and inspect `baseSha..reviewHeadSha`.
@@ -352,6 +357,7 @@ Expected: one commit containing only the workflow skill rewrite.
 ### Task 4: Align dependent skill guidance
 
 **Files:**
+
 - Modify: `skills/requesting-code-review/SKILL.md:10-75`
 - Modify: `skills/writing-plans/SKILL.md:145-159`
 - Modify: `skills/finishing-a-development-branch/SKILL.md:193-200`
@@ -362,11 +368,13 @@ Replace the subagent-driven-development-specific rules with:
 
 ```markdown
 **Mandatory:**
+
 - After the complete implementation plan in subagent-driven development
 - After completing a major feature
 - Before merge to main when no equivalent final review has already run
 
 **Subagent-Driven Development:**
+
 - Review once after the complete plan and `simplify` cleanup are committed.
 - Dispatch the final spec/integration reviewer and code-quality reviewer in
   parallel as one formal review stage.
@@ -427,6 +435,7 @@ Expected: one commit containing the three dependent skill updates.
 ### Task 5: Run repository-wide workflow verification
 
 **Files:**
+
 - Verify: `README.md`
 - Verify: `skills/*/SKILL.md`
 - Verify: `skills/subagent-driven-development/*.md`
