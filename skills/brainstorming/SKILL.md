@@ -115,8 +115,7 @@ digraph brainstorming {
   - (User preferences for spec location override this default)
 - Commit the design document to git
 
-**Spec Self-Review:**
-After writing the spec document, look at it with fresh eyes:
+**Spec Self-Review:** After writing the spec document, look at it with fresh eyes:
 
 1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them.
 2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
@@ -125,8 +124,7 @@ After writing the spec document, look at it with fresh eyes:
 
 Fix any issues inline, then run the reviewer pass.
 
-**Spec Document Reviewer:**
-After self-review passes, dispatch a fresh-context `reviewer` subagent using `./spec-document-reviewer-prompt.md` (resolve relative to this `SKILL.md`):
+**Spec Document Reviewer:** After self-review passes, dispatch a fresh-context `reviewer` subagent using `./spec-document-reviewer-prompt.md` (resolve relative to this `SKILL.md`):
 
 ```typescript
 subagent({ agent: "reviewer", task: <filled template>, context: "fresh" })
@@ -134,8 +132,7 @@ subagent({ agent: "reviewer", task: <filled template>, context: "fresh" })
 
 Fill `[SPEC_FILE_PATH]` with the written spec path. If the reviewer returns `Issues Found`, fix every blocking issue and repeat self-review plus reviewer pass. Treat recommendations as advisory; apply them only when they materially improve implementation planning.
 
-**User Review Gate:**
-After the reviewer pass is approved, ask the user to review the written spec before proceeding:
+**User Review Gate:** After the reviewer pass is approved, ask the user to review the written spec before proceeding:
 
 > "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
 

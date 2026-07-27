@@ -9,10 +9,7 @@ Review all changed files for reuse, quality, and efficiency. Fix any issues foun
 
 ## Optional Comparison Range
 
-A caller may provide an explicit Git comparison range such as
-`<base-sha>..<head-sha>`. When supplied, review that committed range instead
-of the working tree. This is required for workflows whose changes were already
-committed, including `subagent-driven-development`.
+A caller may provide an explicit Git comparison range such as `<base-sha>..<head-sha>`. When supplied, review that committed range instead of the working tree. This is required for workflows whose changes were already committed, including `subagent-driven-development`.
 
 ## Phase 1: Identify Changes
 
@@ -20,11 +17,9 @@ Choose the review diff in this order:
 
 1. If the caller supplied a comparison range, run `git diff <base>..<head>`.
 2. Otherwise, run `git diff` (or `git diff HEAD` for staged changes).
-3. If the selected diff is empty, review the recently modified files named by
-   the user or changed earlier in the conversation.
+3. If the selected diff is empty, review the recently modified files named by the user or changed earlier in the conversation.
 
-Record the selected range, working-tree diff, or fallback file scope and provide
-it to all three reviewers so they inspect exactly the same selected scope.
+Record the selected range, working-tree diff, or fallback file scope and provide it to all three reviewers so they inspect exactly the same selected scope.
 
 ## Phase 2: Launch Three Review Agents in Parallel
 

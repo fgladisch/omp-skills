@@ -37,10 +37,7 @@ Add this contract after the overview:
 ```markdown
 ## Optional Comparison Range
 
-A caller may provide an explicit Git comparison range such as
-`<base-sha>..<head-sha>`. When supplied, review that committed range instead
-of the working tree. This is required for workflows whose changes were already
-committed, including `subagent-driven-development`.
+A caller may provide an explicit Git comparison range such as `<base-sha>..<head-sha>`. When supplied, review that committed range instead of the working tree. This is required for workflows whose changes were already committed, including `subagent-driven-development`.
 ```
 
 - [ ] **Step 2: Replace Phase 1 diff selection with deterministic precedence**
@@ -54,11 +51,9 @@ Choose the review diff in this order:
 
 1. If the caller supplied a comparison range, run `git diff <base>..<head>`.
 2. Otherwise, run `git diff` (or `git diff HEAD` for staged changes).
-3. If the selected diff is empty, review the recently modified files named by
-   the user or changed earlier in the conversation.
+3. If the selected diff is empty, review the recently modified files named by the user or changed earlier in the conversation.
 
-Record the selected range or working-tree scope so all three reviewers inspect
-exactly the same diff.
+Record the selected range or working-tree scope so all three reviewers inspect exactly the same diff.
 ```
 
 Do not change the three review angles or their parallel dispatch behavior.
@@ -98,25 +93,15 @@ Create `final-reviewer-prompt.md` with these sections and responsibilities:
 ```markdown
 # Final Reviewer Prompt Template
 
-This file's content is the `task` string for the whole-plan specification and
-integration reviewer. Dispatch it in parallel with
-`./code-quality-reviewer-prompt.md` after all plan tasks and `simplify` are
-complete.
+This file's content is the `task` string for the whole-plan specification and integration reviewer. Dispatch it in parallel with `./code-quality-reviewer-prompt.md` after all plan tasks and `simplify` are complete.
 
 ## CRITICAL: Read Only. Do Not Edit.
 
-Report findings only. Inspect the repository directly and do not trust worker
-summaries.
+Report findings only. Inspect the repository directly and do not trust worker summaries.
 
 ## Inputs
 
-Plan: [absolute plan path]
-Working directory: [absolute path]
-Branch: [branch]
-Base SHA: [SHA before plan implementation]
-Head SHA: [SHA after simplify cleanup commit]
-Implementation summary: [all worker summaries]
-Verification commands: [commands required by the plan]
+Plan: [absolute plan path] Working directory: [absolute path] Branch: [branch] Base SHA: [SHA before plan implementation] Head SHA: [SHA after simplify cleanup commit] Implementation summary: [all worker summaries] Verification commands: [commands required by the plan]
 
 ## Scope
 
@@ -128,9 +113,7 @@ Check only:
 - Cross-task interfaces, data flow, and integration agree.
 - Verification evidence exercises the completed result.
 
-Do not assess general naming, style, decomposition, maintainability,
-performance, or security unless the plan explicitly requires them. The
-parallel code-quality reviewer owns those concerns.
+Do not assess general naming, style, decomposition, maintainability, performance, or security unless the plan explicitly requires them. The parallel code-quality reviewer owns those concerns.
 
 Inspect `git diff <base>..<head>`, resulting files at HEAD, and relevant tests.
 
@@ -148,8 +131,7 @@ Strengths:
       - <non-blocking observation with file:line>
   Assessment: APPROVED | NEEDS CHANGES
 
-APPROVED means no Critical or Important findings. Do not request or assume a
-re-review. The controller owns finding disposition and verification.
+APPROVED means no Critical or Important findings. Do not request or assume a re-review. The controller owns finding disposition and verification.
 ```
 
 Keep the prompt concise and preserve the responsibility boundary from the design spec.
@@ -159,28 +141,19 @@ Keep the prompt concise and preserve the responsibility boundary from the design
 Change its title and dispatch context from a second per-task pass to a parallel whole-branch pass. Its inputs must be:
 
 ```markdown
-Plan: [absolute plan path, context only]
-Working directory: [absolute path]
-Branch: [branch]
-Base SHA: [SHA before plan implementation]
-Head SHA: [SHA after simplify cleanup commit]
-Implementation summary: [all worker summaries]
-Verification commands: [commands required by the plan]
+Plan: [absolute plan path, context only] Working directory: [absolute path] Branch: [branch] Base SHA: [SHA before plan implementation] Head SHA: [SHA after simplify cleanup commit] Implementation summary: [all worker summaries] Verification commands: [commands required by the plan]
 ```
 
 Its scope must include implementation-detail correctness risks, meaningful test coverage, maintainability, naming, decomposition, project conventions, security, error handling, concurrency, performance, dead code, and boundary leaks. Add this exclusion explicitly:
 
 ```markdown
-Do not perform line-by-line plan compliance or report missing/extra product
-requirements. The parallel final reviewer owns specification and cross-task
-integration compliance.
+Do not perform line-by-line plan compliance or report missing/extra product requirements. The parallel final reviewer owns specification and cross-task integration compliance.
 ```
 
 Keep the `Strengths / Issues / Assessment` format and add:
 
 ```markdown
-Do not request or assume a re-review. The controller owns finding disposition
-and verification after fixes.
+Do not request or assume a re-review. The controller owns finding disposition and verification after fixes.
 ```
 
 - [ ] **Step 3: Remove the obsolete per-task spec prompt**
@@ -226,9 +199,7 @@ Expected: one commit containing the new final prompt, rewritten quality prompt, 
 State the workflow as:
 
 ```markdown
-Execute a plan by dispatching one fresh worker per task, then run `simplify`
-once and gate the completed plan on one parallel review stage: whole-plan
-specification/integration review plus whole-branch code-quality review.
+Execute a plan by dispatching one fresh worker per task, then run `simplify` once and gate the completed plan on one parallel review stage: whole-plan specification/integration review plus whole-branch code-quality review.
 
 **Core principle:** Fresh worker per task + one bounded post-plan review stage = focused implementation without review loops.
 ```
@@ -300,13 +271,10 @@ Document these rules exactly:
 ```markdown
 - Critical and Important findings block handoff.
 - Minor findings are deferred when no fixer is needed.
-- Reject duplicates, false positives, out-of-scope suggestions, and findings
-  contradicted by repository evidence.
-- When blockers remain, dispatch one fresh fixer worker with all accepted
-  blockers and any cheap, safe, in-scope Minor findings.
+- Reject duplicates, false positives, out-of-scope suggestions, and findings contradicted by repository evidence.
+- When blockers remain, dispatch one fresh fixer worker with all accepted blockers and any cheap, safe, in-scope Minor findings.
 - The fixer runs complete plan verification and commits once.
-- Do not automatically re-run either reviewer. A further focused review needs
-  an explicit, concrete risk decision from the controller or user.
+- Do not automatically re-run either reviewer. A further focused review needs an explicit, concrete risk decision from the controller or user.
 ```
 
 The fixer prompt must include the plan path, base/head range, both reports, accepted findings, constraints, verification commands, and the required worker report format.
@@ -376,8 +344,7 @@ Replace the subagent-driven-development-specific rules with:
 **Subagent-Driven Development:**
 
 - Review once after the complete plan and `simplify` cleanup are committed.
-- Dispatch the final spec/integration reviewer and code-quality reviewer in
-  parallel as one formal review stage.
+- Dispatch the final spec/integration reviewer and code-quality reviewer in parallel as one formal review stage.
 - Synthesize findings before sending accepted blockers to one fixer worker.
 - Do not create an automatic re-review loop.
 ```
@@ -391,9 +358,7 @@ Replace the stale handoff with:
 ```markdown
 Plan complete and saved to `docs/pi/plans/<filename>.md`.
 
-If you want, I can execute it now with subagent-driven-development: fresh
-worker per task, then one parallel plan-level review stage after implementation
-and simplify. Want me to start?
+If you want, I can execute it now with subagent-driven-development: fresh worker per task, then one parallel plan-level review stage after implementation and simplify. Want me to start?
 ```
 
 Update the two following bullets to use the same wording and remove all references to two-stage per-task review.
@@ -403,8 +368,7 @@ Update the two following bullets to use the same wording and remove all referenc
 Change the `subagent-driven-development` integration line to:
 
 ```markdown
-- **subagent-driven-development** - After all tasks, simplify cleanup, the
-  parallel formal review stage, accepted fixes, and full-plan verification.
+- **subagent-driven-development** - After all tasks, simplify cleanup, the parallel formal review stage, accepted fixes, and full-plan verification.
 ```
 
 Do not make `finishing-a-development-branch` run simplify again when the current diff range has already been simplified.

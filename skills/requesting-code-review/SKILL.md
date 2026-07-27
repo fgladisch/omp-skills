@@ -59,8 +59,7 @@ The `subagent` tool comes from the `pi-subagents` extension.
 
 ## Manual/Ad-Hoc Review Example
 
-This example is for manual or ad-hoc work. Do not use this timing for
-subagent-driven development, which reviews after the completed plan.
+This example is for manual or ad-hoc work. Do not use this timing for subagent-driven development, which reviews after the completed plan.
 
 ```
 [Just completed Task 2: Add verification function]

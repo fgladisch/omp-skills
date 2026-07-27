@@ -81,8 +81,7 @@ def test_specific_behavior():
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: FAIL with "function not defined"
+Run: `pytest tests/path/test.py::test_name -v` Expected: FAIL with "function not defined"
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -93,8 +92,7 @@ def function(input):
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: PASS
+Run: `pytest tests/path/test.py::test_name -v` Expected: PASS
 
 - [ ] **Step 5: Commit**
 

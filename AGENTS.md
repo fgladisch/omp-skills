@@ -6,9 +6,9 @@ Project context for agents working in this repository (`pi-skills`).
 
 The `## Skills` table in `README.md` is the human-facing index of every skill in this repo. It **must** stay in sync with the actual skill directories. Whenever you make any of the following changes, update `README.md` in the same change:
 
-- **Adding a skill** — create `skills/<skill-name>/SKILL.md` *and* add a row to the `## Skills` table in `README.md`. Insert the row in alphabetical order by skill name.
-- **Removing a skill** — delete the directory *and* remove its row from the table.
-- **Renaming a skill** — rename the directory *and* update the row (name + link target if any).
+- **Adding a skill** — create `skills/<skill-name>/SKILL.md` _and_ add a row to the `## Skills` table in `README.md`. Insert the row in alphabetical order by skill name.
+- **Removing a skill** — delete the directory _and_ remove its row from the table.
+- **Renaming a skill** — rename the directory _and_ update the row (name + link target if any).
 - **Changing what a skill is for** — if you materially change the `description` in a skill's frontmatter (the "When to use" summary), update the matching row in the table so they tell the same story.
 
 The "When to use" column in `README.md` should be a short, human-readable rephrasing of the skill's frontmatter `description`. It does not have to be a verbatim copy, but it must not contradict it.
