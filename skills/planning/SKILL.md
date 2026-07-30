@@ -11,7 +11,7 @@ Produce only the design or implementation detail needed to make the next action 
 
 - If the user asks only for analysis, design, or a plan, inspect the relevant material and return that artifact. Do not implement.
 - If the user asks for implementation and the requirements are clear, proceed without a mandatory planning ceremony.
-- Pause when an unresolved choice could materially change behavior, compatibility, data handling, security, or scope. Ask the smallest necessary set of independent questions together and recommend answers. Ask sequentially only when one answer determines the next question.
+- Pause when an unresolved choice could materially change behavior, compatibility, data handling, security, or scope. Ask the smallest necessary set of independent questions together and recommend answers. Use `user_select` when the answers can be expressed as concrete, mutually exclusive choices. Ask sequentially only when one answer determines the next question.
 - Resolve questions from the repository, documentation, or existing conventions before asking the user.
 
 ## Build the plan
@@ -22,7 +22,7 @@ Produce only the design or implementation detail needed to make the next action 
 4. Identify affected components, interfaces, data flow, failure handling, and validation.
 5. Break implementation into ordered units with exact paths when the work needs a durable handoff.
 
-Scale the artifact to the task. A small change may need a short inline plan. A broad or risky change may need a written design and task plan. Do not create documents or commits unless requested or required by project instructions.
+Scale the artifact to the task. Write design and spec documents to `docs/pi/specs/` and implementation plans to `docs/pi/plans/`, unless the user or project instructions specify another location. Ask the user to review and approve the written artifact before implementation. Do not commit it unless requested or required by project instructions.
 
 ## Approval boundaries
 
@@ -32,7 +32,7 @@ Safe local inspection and planning do not need confirmation. Ask before:
 - expanding scope beyond the request;
 - writing externally, spending money, or performing destructive actions.
 
-When the user requested implementation, design approval is optional unless a consequential ambiguity remains.
+After approval, proceed with requested in-scope implementation without asking again.
 
 ## Output
 
