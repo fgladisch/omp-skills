@@ -25,68 +25,52 @@ ln -s ~/code/pi-skills/skills ~/.pi/agent/skills/pi-skills
 
 ## Skills
 
-| Skill                            | When to use                                                                                                                                                                                                                                                                                                      |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `brainstorming`                  | Before creative work or plan/design evaluation — relentlessly explores intent, requirements, trade-offs, and decision branches before implementation (uses [`@fgladisch/pi-user-select`](https://www.npmjs.com/package/@fgladisch/pi-user-select), [`pi-subagents`](https://github.com/nicobailon/pi-subagents)) |
-| `commit`                         | When the user asks to commit changes — creates git commits following the gitmoji convention (uses [`@fgladisch/pi-user-select`](https://www.npmjs.com/package/@fgladisch/pi-user-select))                                                                                                                        |
-| `dispatching-parallel-agents`    | When facing 2+ independent tasks that can run without shared state (uses [`pi-subagents`](https://github.com/nicobailon/pi-subagents))                                                                                                                                                                           |
-| `finishing-a-development-branch` | When implementation is complete and ready for merge / PR / cleanup (uses [`@fgladisch/pi-user-select`](https://www.npmjs.com/package/@fgladisch/pi-user-select))                                                                                                                                                 |
-| `receiving-code-review`          | When receiving code review feedback, before implementing suggestions                                                                                                                                                                                                                                             |
-| `requesting-code-review`         | After completing implementation tasks or major features, before claiming ready or merging (uses [`pi-subagents`](https://github.com/nicobailon/pi-subagents))                                                                                                                                                    |
-| `simplify`                       | After making code changes, before committing — reviews the diff for reuse, quality, and efficiency in parallel and fixes findings (uses [`pi-subagents`](https://github.com/nicobailon/pi-subagents))                                                                                                            |
-| `subagent-driven-development`    | After an implementation plan exists and contains independent tasks that can be delegated in the current session (uses [`pi-subagents`](https://github.com/nicobailon/pi-subagents))                                                                                                                              |
-| `systematic-debugging`           | When encountering any bug, test failure, or unexpected behavior                                                                                                                                                                                                                                                  |
-| `test-driven-development`        | When planned implementation begins for any feature or bugfix, before writing production code                                                                                                                                                                                                                     |
-| `verification-before-completion` | Universal terminal gate after any task/workflow — before claiming work is complete, fixed, reviewed, ready, committed, merged, or passing                                                                                                                                                                        |
-| `writing-plans`                  | After an approved design/spec or clear requirements exist, before implementing a multi-step task                                                                                                                                                                                                                 |
+| Skill                            | When to use                                                                                                                                                                                     |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `code-review`                    | When reviewing a change, evaluating review feedback, or cleaning up a scoped diff before completion or integration                                                                              |
+| `commit`                         | When the user asks to commit changes; follows repository conventions with gitmoji as the fallback (uses [`@fgladisch/pi-user-select`](https://www.npmjs.com/package/@fgladisch/pi-user-select)) |
+| `finishing-a-development-branch` | When completed branch work is ready to merge, publish as a PR, retain, or discard (uses [`@fgladisch/pi-user-select`](https://www.npmjs.com/package/@fgladisch/pi-user-select))                 |
+| `planning`                       | When the user asks for a design or plan, or a change has consequential unresolved decisions                                                                                                     |
+| `systematic-debugging`           | When a bug, failing test, build failure, performance regression, or unexpected behavior needs diagnosis                                                                                         |
+| `test-driven-development`        | For behavior changes and bug fixes when a test or executable regression check can establish the expected result first                                                                           |
+| `verification-before-completion` | Before claiming work is complete, fixed, passing, reviewed, ready, committed, or integrated                                                                                                     |
 
 ## Skill dependency graph
 
 ```mermaid
-%%{init: {'flowchart': {'nodeSpacing': 50, 'rankSpacing': 100}} }%%
 flowchart TB
-  B["brainstorming"]
-  WP["writing-plans"]
-  SDD["subagent-driven-development"]
-  RCR["requesting-code-review"]
-  TDD["test-driven-development"]
-  FDB["finishing-a-development-branch"]
-
+  P["planning<br/>(when requested or decisions remain)"]
   SD["systematic-debugging"]
-  SIM["simplify"]
-  VBC["verification-before-completion<br/>(universal terminal gate)"]
-  TASKS["all task-producing skills<br/>(commit, reviews,<br/>delegation, planning)"]
+  TDD["test-driven-development"]
+  CR["code-review"]
+  V["verification-before-completion"]
+  C["commit"]
+  F["finishing-a-development-branch"]
 
-  B --> WP
-  WP --> SDD
-
-  SDD --> RCR
-  SDD --> TDD
-  SDD --> FDB
-
-  SD --> TDD
-
-  TASKS -. "after non-trivial code changes" .-> SIM
-  SIM -. "before completion/success claim" .-> VBC
-  TASKS -. "skip for docs/tiny edits" .-> VBC
-  SD -. "before fix complete" .-> VBC
+  P -. "clear implementation request" .-> TDD
+  SD -. "when a regression cycle is feasible" .-> TDD
+  TDD -. "when independent review adds value" .-> CR
+  CR --> V
+  TDD --> V
+  SD --> V
+  V --> C
+  V --> F
 ```
 
-Dashed edges indicate terminal verification gates, not normal workflow order. `verification-before-completion` applies after every result-producing workflow, even when a skill does not show a direct edge above.
+Dashed edges are optional. Clear implementation requests can proceed without a planning ceremony, and review depth should match the size and risk of the change.
 
 ## Required extensions
 
 Some skills depend on extension-provided tools. Install these before using the related skills:
 
-| Extension                                                                              | Tool(s) provided | Required by skills                                                                                                  |
-| -------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
-| [`@fgladisch/pi-user-select`](https://www.npmjs.com/package/@fgladisch/pi-user-select) | `user_select`    | `brainstorming`, `commit`, `finishing-a-development-branch`                                                         |
-| [`pi-subagents`](https://github.com/nicobailon/pi-subagents)                           | `subagent`       | `brainstorming`, `dispatching-parallel-agents`, `requesting-code-review`, `simplify`, `subagent-driven-development` |
+| Extension                                                                              | Tool(s) provided | Required by skills                         |
+| -------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------ |
+| [`@fgladisch/pi-user-select`](https://www.npmjs.com/package/@fgladisch/pi-user-select) | `user_select`    | `commit`, `finishing-a-development-branch` |
 
 ## Pi-specific notes
 
 - Project context lives in `AGENTS.md`, pi's preferred project-instructions file.
-- Verify `subagent` setup with `subagent({ action: "doctor" })`.
+- [`pi-subagents`](https://github.com/nicobailon/pi-subagents) is an optional companion for delegated work and provides its own orchestration guidance.
 - Skills use pi tools directly: `read`, `write`, `edit`, `bash`, and extension tools when installed.
 
 ## License
