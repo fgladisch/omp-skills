@@ -9,31 +9,37 @@ Produce only the design or implementation detail needed to make the next action 
 
 ## Decide whether planning is needed
 
-- If the user asks only for analysis, design, or a plan, inspect the relevant material and return that artifact. Do not implement.
-- If the user asks for implementation and the requirements are clear, proceed without a mandatory planning ceremony.
-- Pause when an unresolved choice could materially change behavior, compatibility, data handling, security, or scope. Ask the smallest necessary set of independent questions together and recommend answers. Use `user_select` when the answers can be expressed as concrete, mutually exclusive choices. Ask sequentially only when one answer determines the next question.
-- Resolve questions from the repository, documentation, or existing conventions before asking the user.
+- For analysis, design, or plan-only requests, inspect the relevant material and return the requested artifact without implementing.
+- For a clear implementation request, proceed without a planning ceremony.
+- When an unresolved choice materially affects behavior, compatibility, data handling, security, or scope, use OMP's `ask` tool. Ask the smallest independent set of questions together, provide 2–5 concrete options, and mark the safest default as recommended.
+- Resolve questions from repository evidence before asking the user.
+
+## Research with OMP
+
+Use the narrowest authoritative surface:
+
+- `read` for project instructions, files, documents, URLs, `issue://`, and `pr://`;
+- `glob` to map relevant paths and `grep` for textual evidence;
+- `lsp` for definitions, implementations, references, and symbol relationships;
+- `bash` only for focused external commands or repository history that dedicated tools do not expose.
+
+Do not delegate the top-level plan. A broad investigation may use a read-only `scout` through `task` only after the goal and independent research slice are explicit.
 
 ## Build the plan
 
-1. Inspect project instructions, relevant code, tests, documentation, and recent changes.
-2. State the goal, constraints, success criteria, and non-goals.
-3. Record consequential decisions and the reason for the chosen approach. Compare alternatives only when the choice is real.
-4. Identify affected components, interfaces, data flow, failure handling, and validation.
-5. Break implementation into ordered units with exact paths when the work needs a durable handoff.
+1. State the goal, constraints, success criteria, and non-goals.
+2. Record consequential decisions and why the selected approach wins.
+3. Identify affected paths, interfaces, data flow, failure handling, migration or compatibility concerns, and validation.
+4. Break implementation into ordered units with exact paths when a durable handoff is useful.
 
-Scale the artifact to the task. Write design and spec documents to `docs/pi/specs/` and implementation plans to `docs/pi/plans/`, unless the user or project instructions specify another location. Ask the user to review and approve the written artifact before implementation. Do not commit it unless requested or required by project instructions.
+Scale the artifact to the task. Write specifications to `docs/omp/specs/` and implementation plans to `docs/omp/plans/` unless repository instructions specify another location. Use `write` for a new artifact and `edit` for an existing one. Ask for review and approval of the written artifact before implementing it; do not commit it unless requested.
+
+Use `todo` to track an approved multi-step implementation, not as a substitute for the design and not for a plan-only request.
 
 ## Approval boundaries
 
-Safe local inspection and planning do not need confirmation. Ask before:
-
-- choosing between materially different product behaviors when context cannot decide;
-- expanding scope beyond the request;
-- writing externally, spending money, or performing destructive actions.
-
-After approval, proceed with requested in-scope implementation without asking again.
+Safe local inspection and planning do not need confirmation. Use `ask` before choosing between materially different product behaviors that evidence cannot resolve, expanding scope, writing externally, spending money, or performing destructive actions. Once approved, execute the in-scope plan without repeated confirmation.
 
 ## Output
 
-Lead with the recommended approach. Include affected areas, validation, and any unresolved risk. Omit repeated rationale, generic best practices, and implementation detail that the next worker can infer safely from the repository.
+Lead with the recommended approach. Include affected areas, validation, and unresolved risks. Omit generic best practices and detail the implementer can safely infer from the repository.

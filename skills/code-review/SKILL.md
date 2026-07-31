@@ -5,47 +5,49 @@ description: Use when reviewing a change, evaluating code-review feedback, or cl
 
 # Code Review
 
-Find material defects in a defined change, evaluate findings against repository evidence, and fix accepted issues when the request authorizes edits.
+Find material defects in a defined change, evaluate them against repository evidence, and fix accepted findings when the request authorizes edits.
 
-## Establish scope
+## Load the review scope
 
-Determine:
+Use Oh My Pi's structured surfaces before reconstructing context manually:
 
-- the diff, files, commit range, or feedback items under review;
-- the intended behavior and relevant project conventions;
-- whether the request authorizes review only or also authorizes local fixes.
+- `read pr://<number>` or `read issue://<number>` for GitHub context;
+- `bash` for focused Git commands such as `git status --short`, `git diff`, and `git show`;
+- `read` for exact file sections, `glob` for paths, and `grep` for textual evidence;
+- `lsp` for definitions, implementations, diagnostics, and references. Run references before changing an exported symbol.
 
-Inspect the code and tests instead of relying on summaries. If the scope is unclear and cannot be inferred, ask before reviewing the wrong change.
+Determine the intended behavior, repository conventions, exact diff or feedback items, and whether the request is review-only or authorizes fixes. If scope cannot be inferred from the repository or request, use `ask` before reviewing the wrong change.
 
-## Review
+## Review the change
 
-Prioritize findings that affect correctness, security, data integrity, compatibility, or maintainability. Check for missing requirements and tests, regressions, duplicated existing behavior, unnecessary complexity, and avoidable performance costs.
+Prioritize defects affecting correctness, security, data integrity, compatibility, performance, and maintainability. Check for missing requirements, regressions, unhandled boundaries, duplicated behavior, unnecessary complexity, and tests that do not defend the changed contract.
 
-Each finding must include:
+Report findings in severity order:
 
-- severity;
-- exact file and location;
-- the concrete failure or risk;
-- supporting evidence;
-- a specific correction.
+- **P0** — immediate, broad, or irreversible harm;
+- **P1** — release-blocking defect in normal use;
+- **P2** — real defect with limited impact or a practical workaround;
+- **P3** — worthwhile but non-blocking correction.
 
-Return findings in severity order. Do not inflate stylistic preferences into defects. If no material findings exist, say so and name any validation gap.
+Each finding must include the exact file and location, failure scenario, repository evidence, specific correction, and confidence. Do not inflate style preferences into defects. If no material finding exists, say so and identify any validation gap.
 
-## Use subagents selectively
+## Use OMP reviewers when they add coverage
 
-Review directly by default. Use one fresh, read-only subagent when independent judgment or task shape materially improves confidence. Use parallel reviewers only when a broad or high-risk diff has distinct review angles that justify the extra cost. Give every subagent the same explicit scope and ask for findings only. The parent validates and synthesizes their reports.
+Review directly by default. For a broad or high-risk diff with genuinely independent angles, batch `task` calls using the `reviewer` and, when appropriate, `security-reviewer` agents. Give each agent the same explicit scope and a distinct review angle. Do not run reviewers serially.
+
+Treat agent reports as leads, not verdicts. Validate every proposed finding against the current files and synthesize one deduplicated result.
 
 ## Evaluate incoming feedback
 
-For each review comment:
+For each comment:
 
-1. Restate the technical claim when clarification is useful.
-2. Verify it against the current code, requirements, and supported environments.
-3. Accept, reject, or ask about the finding with evidence.
-4. Check whether the proposed change expands scope or adds unused behavior.
+1. Verify the technical claim against current code, requirements, and supported environments.
+2. Accept, reject, or request clarification with evidence.
+3. Check whether the proposed correction expands scope or adds unused behavior.
+4. Implement accepted findings only when edits are authorized.
 
-Implement accepted findings when edits are authorized. Push back directly on incorrect or out-of-scope advice. Avoid performative agreement.
+Use `edit` for surgical changes, `lsp` for symbol-aware refactors and code actions, and `ast_edit` for structural codemods. Push back directly on incorrect or out-of-scope advice.
 
-## Fix and validate
+## Validate
 
-Keep fixes scoped to accepted findings. Run focused checks for the changed behavior, then broader validation proportional to regression risk. Apply `verification-before-completion` before claiming the review or fixes are complete.
+Run the smallest check that exercises each accepted fix, then broader validation proportional to regression risk. For UI changes, drive the changed path with `browser`. Apply `verification-before-completion` before claiming the review or fixes are complete.

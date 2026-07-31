@@ -5,42 +5,45 @@ description: Use when completed branch work is ready to merge locally, publish a
 
 # Finishing a Development Branch
 
-Validate the branch, present the feasible outcomes, and perform only the selected integration or cleanup action.
+Validate the branch, present feasible outcomes with Oh My Pi's structured tools, and perform only the authorized integration or cleanup action.
 
 ## Establish state
 
-1. Inspect the current branch, worktree, status, remotes, and repository instructions.
-2. Resolve the intended base branch from explicit context or the remote default. Ask if it remains ambiguous.
-3. Stop on detached HEAD, unexpected uncommitted changes, or when the feature and base branch are the same. Report the recovery needed instead of guessing.
-4. Run fresh validation proportional to the branch changes. If it fails, report the failures and do not present the branch as ready.
+1. Use `bash` to inspect the current branch, worktree, status, remotes, recent commits, and remote default branch.
+2. Use `read` for repository instructions and `read pr://<number>` when an existing pull request is relevant.
+3. Resolve the intended base branch from explicit context or the remote default. Use `ask` if it remains materially ambiguous.
+4. Stop on detached HEAD, unexpected uncommitted changes, or identical feature and base branches. Report the recovery needed instead of guessing.
+5. Run fresh validation proportional to the branch changes. Do not present a failing branch as ready.
 
 ## Present outcomes
 
-Use `user_select` for the actions that are actually available:
+Use one `ask` call containing only actions that are currently feasible:
 
-- merge into the base branch locally, preserving the feature branch unless deletion is explicitly included;
+- merge into the base branch locally;
 - push and create a pull request;
 - keep the branch and worktree unchanged;
 - discard the branch work.
 
-The selection authorizes the named merge, push/PR, or keep action. Discard remains destructive and requires a second confirmation showing the branch, commits, uncommitted files, and worktree that will be removed.
+For merge or pull-request choices, include the base, remote, branch, title or merge mode, validation result, and preservation policy. Mark the safest complete outcome as recommended.
+
+The selection authorizes only the named action. Discard is destructive: require a second `ask` confirmation showing the branch, commits, uncommitted files, and worktree that will be removed.
 
 ## Execute
 
 ### Merge locally
 
-Update the base branch only when doing so is safe under repository policy, merge without force, and run relevant validation on the merged result. Preserve the feature branch unless the selected outcome explicitly included deletion or the user confirms it separately.
+Update the base only when repository policy and worktree state make it safe. Merge without force, then validate the merged result. Preserve the feature branch unless deletion was explicitly selected.
 
 ### Push and create a pull request
 
-Show the intended remote, branch, PR title, and summary before the selection. After authorization, push without force and create the PR. Report its URL and preserve the feature branch/worktree unless the user asks for cleanup.
+Prefer OMP's `github` tool when enabled; otherwise use the repository's configured CLI through `bash`. Push without force, create the pull request with the approved title and summary, report its URL, and preserve the local branch/worktree unless cleanup was selected.
 
 ### Keep
 
-Leave the branch and worktree unchanged and report their names and paths.
+Leave the branch and worktree unchanged. Report their names and paths.
 
 ### Discard
 
-After explicit destructive confirmation, remove the worktree safely and delete only the named feature branch. Never delete the base branch or unrelated uncommitted work.
+After explicit destructive confirmation, remove only the named worktree and feature branch. Never delete the base branch or unrelated uncommitted work.
 
-Apply `verification-before-completion` to claims about tests, merges, pushes, PR creation, or cleanup.
+Apply `verification-before-completion` to every claim about validation, merges, pushes, pull requests, or cleanup.

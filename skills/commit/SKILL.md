@@ -5,14 +5,14 @@ description: Use when the user asks to commit, create a commit, stage and commit
 
 # Commit
 
-Create one intentional commit from an explicitly confirmed file set and message.
+Create one intentional commit from an evidence-backed file set and message.
 
 ## Prepare
 
-1. Read project commit instructions and recent commit subjects.
+1. Use `read` for repository commit instructions and `bash` for recent commit subjects.
 2. Inspect `git status --short`, `git diff`, and `git diff --cached`.
-3. Stop if there are no changes. Separate unrelated concerns rather than hiding them in one commit.
-4. Run validation proportional to the selected changes unless the user explicitly requested a no-verify workflow.
+3. Stop if there are no changes. Preserve unrelated user changes and split unrelated concerns.
+4. Run validation proportional to the selected files unless the user explicitly requested a no-verify workflow.
 
 Follow the repository's commit format. If none exists, use `<gitmoji> <type>: <description>` with a concise subject:
 
@@ -26,12 +26,16 @@ Follow the repository's commit format. If none exists, use `<gitmoji> <type>: <d
 | Removal                | `🔥 remove:`   |
 | Tooling or maintenance | `🔧 chore:`    |
 
-## Confirm
+## Resolve ambiguity
 
-Use `user_select` once to show the proposed message, exact file list, and validation result. Offer: commit as-is, edit message, edit files, or cancel. Reconfirm after edits.
+The user's commit request authorizes committing the intended change, not unrelated files, hook bypasses, amendments, or pushes. Infer the file set and message from the completed task and repository conventions.
+
+Use OMP's `ask` tool only when materially different file groupings or messages remain plausible. Show the proposed message, exact file list, and validation result together; offer concrete choices and mark the safest complete choice as recommended.
 
 ## Commit
 
-Stage specific paths. Do not use `git add .` or `git add -A` unless the user explicitly selected the whole working tree. Create the commit without interactive flags, then inspect `git status --short` and the new commit.
+Stage specific paths with `bash`. Do not use `git add .` or `git add -A` unless the whole working tree is explicitly in scope. Create the commit without interactive flags, then inspect the new commit and `git status --short`.
 
-If a hook fails, report the failure and keep the commit uncreated. Fix hook failures only when authorized by the original request or a follow-up. Never bypass hooks, amend, push, add attribution, or broaden the file set without explicit authorization.
+If a hook fails, report the complete failure and leave the commit uncreated. Fix hook failures only when the original request authorizes those edits. Never bypass hooks, amend, push, add attribution, or broaden the file set without explicit authorization.
+
+Apply `verification-before-completion` before reporting the commit created.

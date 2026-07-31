@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Project context for agents working in this repository (`pi-skills`).
+Project context for agents working in this repository (`omp-skills`).
 
 ## Golden rule: keep skills and `README.md` in sync
 
@@ -27,11 +27,11 @@ If any of those checks fail, fix `README.md` (or the skill) before considering t
 ## Skill file conventions
 
 - Each skill lives in its own directory: `skills/<skill-name>/SKILL.md`.
-- `SKILL.md` starts with YAML frontmatter containing `name` and `description`. The `description` is what pi shows in `<available_skills>` and is what tells the agent when to invoke the skill — keep it precise and trigger-oriented.
+- `SKILL.md` starts with YAML frontmatter containing `name` and `description`. OMP exposes the description in discovered skill metadata and uses it to decide when to load the skill, so keep it precise and trigger-oriented.
 - Supporting files (references, templates, examples) live alongside `SKILL.md` in the same directory and are referenced by relative path.
 
-## Pi conventions used in this repo
+## Oh My Pi conventions used in this repo
 
-- pi auto-loads `AGENTS.md` as project context. Prefer `AGENTS.md` for repository instructions.
-- Skills are discovered from `~/.agents/skills` and `~/.pi/agent/skills` globally, plus `.agents/skills` and `.pi/skills` in projects.
-- Tool names in skills follow pi's tool set (`read`, `bash`, `edit`, `write`, `mcp`, `subagent`).
+- OMP auto-loads `AGENTS.md` as project context. Prefer `AGENTS.md` for repository instructions.
+- Native skills are discovered from `~/.omp/agent/skills/` for users and `.omp/skills/` for projects. Each skill directory must be exactly one level below the discovery root.
+- Tool names in skills follow OMP's built-in surface: `read`, `glob`, `grep`, `lsp`, `edit`, `write`, `bash`, `eval`, `ask`, `task`, `hub`, `todo`, `browser`, `debug`, and discoverable tools such as `ast_edit`.
