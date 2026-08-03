@@ -31,9 +31,11 @@ Report findings in severity order:
 
 Each finding must include the exact file and location, failure scenario, repository evidence, specific correction, and confidence. Do not inflate style preferences into defects. If no material finding exists, say so and identify any validation gap.
 
-## Use OMP reviewers when they add coverage
+## Delegate every user-requested review
 
-Review directly by default. For a broad or high-risk diff with genuinely independent angles, batch `task` calls using the `reviewer` and, when appropriate, `security-reviewer` agents. Give each agent the same explicit scope and a distinct review angle. Do not run reviewers serially.
+When the user asks for a review, always spawn a `reviewer` subagent with `task`. Do not perform the substantive code review yourself. Give the reviewer the exact scope, intended behavior, relevant repository constraints, and whether the request is review-only or authorizes fixes.
+
+For a broad or high-risk diff with genuinely independent angles, batch multiple `reviewer` agents and, when appropriate, a `security-reviewer` agent. Give each agent the same explicit scope and a distinct review angle. Do not run reviewers serially.
 
 Treat agent reports as leads, not verdicts. Validate every proposed finding against the current files and synthesize one deduplicated result.
 
