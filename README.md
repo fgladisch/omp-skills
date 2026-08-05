@@ -22,7 +22,7 @@ For local development, replace `"$HOME"/.omp/omp-skills/skills/*` with the path 
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `code-review`                    | When reviewing a change, evaluating review feedback, or cleaning up a scoped diff before completion or integration    |
 | `commit`                         | When the user asks to commit changes; follows repository conventions with gitmoji as the fallback                     |
-| `finishing-a-development-branch` | When completed branch work is ready to merge, publish as a PR, retain, or discard                                     |
+| `finalizing-changes`             | When a coherent set of changes is ready to validate and then commit, merge, publish as a PR, or retain                |
 | `planning`                       | When the user asks for a design or plan, or a change has consequential unresolved decisions                           |
 | `systematic-debugging`           | When a bug, failing test, build failure, performance regression, or unexpected behavior needs diagnosis               |
 | `test-driven-development`        | For behavior changes and bug fixes when a test or executable regression check can establish the expected result first |
@@ -38,7 +38,7 @@ flowchart TB
   CR["code-review"]
   V["verification-before-completion"]
   C["commit"]
-  F["finishing-a-development-branch"]
+  F["finalizing-changes"]
 
   P -. "clear implementation request" .-> TDD
   SD -. "when a regression cycle is feasible" .-> TDD
