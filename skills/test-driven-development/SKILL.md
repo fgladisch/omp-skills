@@ -30,6 +30,10 @@ Refactor only while checks remain green. Use `ast_edit` for structural codemods 
 
 Tests must be deterministic, isolated, and resistant to implementation-only changes. Prefer real collaborators when cheap and reliable; use fakes or mocks only at slow, unstable, destructive, or external boundaries. Do not add production APIs solely for tests.
 
+## Review
+
+After the Green and Refactor steps, apply `code-review` when the change carries meaningful compatibility, security, data-integrity, or operational risk. Keep review optional for small, low-risk changes.
+
 ## Practical exceptions
 
 Strict test-first may add little value for documentation, generated artifacts, configuration-only edits, exploratory spikes, UI-only visual changes, or environments without a usable harness. Proceed without asking when the exception is clear and record the executable, browser, or artifact validation used instead. For hard-to-isolate legacy code, add the narrowest characterization or integration check that exposes the regression.

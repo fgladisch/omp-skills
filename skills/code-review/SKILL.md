@@ -9,7 +9,7 @@ Delegate every change review to focused subagents, evaluate their candidate find
 
 ## Authorization
 
-A review request allows you to inspect code and report findings. Do not edit the code unless the user also asks you to fix, address, or clean it up. When they do, make only the local changes needed for accepted findings and run non-destructive checks. Ask first before writing to external systems, taking destructive action, changing the intended public contract, or materially expanding the requested scope.
+A user review request or an explicit handoff from another skill authorizes an inspection-only review. Do not edit the code unless the user also asks you to fix, address, or clean it up. When they do, make only the local changes needed for accepted findings and run non-destructive checks. Ask first before writing to external systems, taking destructive action, changing the intended public contract, or materially expanding the requested scope.
 
 ## Required prompts
 

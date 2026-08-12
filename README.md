@@ -40,17 +40,17 @@ flowchart TB
   C["commit"]
   F["finalizing-changes"]
 
-  P -. "clear implementation request" .-> TDD
   SD -. "when a regression cycle is feasible" .-> TDD
-  TDD -. "when independent review adds value" .-> CR
+  TDD -. "when change risk warrants review" .-> CR
   CR --> V
   TDD --> V
   SD --> V
-  V --> C
-  V --> F
+  F -. "when the outcome requires a commit" .-> C
+  C --> V
+  F --> V
 ```
 
-Dashed edges are optional. Clear implementation requests can proceed without a planning ceremony, and review depth should match the size and risk of the change.
+Arrows mean the source skill explicitly applies the target skill, and dashed edges are conditional. Planning is an independent entry point; clear implementation requests can proceed without it. TDD requests independent review only when compatibility, security, data-integrity, or operational risk warrants the additional pass.
 
 ## OMP tooling
 
