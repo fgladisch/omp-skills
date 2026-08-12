@@ -9,7 +9,7 @@ Delegate every change review to focused subagents, evaluate their candidate find
 
 ## Authorization
 
-Review and evaluation requests authorize inspection and reporting only. Requests to address, fix, or clean up a change authorize in-scope local edits and non-destructive validation. Confirm before external writes, destructive actions, changing the intended public contract, or materially expanding scope.
+A review request allows you to inspect code and report findings. Do not edit the code unless the user also asks you to fix, address, or clean it up. When they do, make only the local changes needed for accepted findings and run non-destructive checks. Ask first before writing to external systems, taking destructive action, changing the intended public contract, or materially expanding the requested scope.
 
 ## Required prompts
 
@@ -18,15 +18,17 @@ Read both supporting files before reviewing a change:
 - [`orchestrator-prompt.md`](./orchestrator-prompt.md) is the main-session contract for scope, task routing, aggregation, and final findings.
 - [`category-reviewer-prompt.md`](./category-reviewer-prompt.md) is the prompt and strict output contract for every review subagent.
 
-## Review a change
+## Workflow
 
-Use this mode for a diff, working tree, development branch, commit, pull request, or defined file set.
+### 1. Review the change
 
-Always hand the review to subagents through the workflow in `orchestrator-prompt.md`. Delegate even a small or single-category change. The main session coordinates scope and tasks; it does not perform a second direct review.
+Resolve the active scope: a diff, working tree, development branch, commit, pull request, or defined file set.
 
-## Evaluate incoming feedback
+Always hand the review to subagents through `orchestrator-prompt.md`, including small and single-category changes. The main session coordinates scope and tasks without performing a duplicate direct review.
 
-Use this mode to evaluate candidate findings returned by review subagents. Do not delegate this evaluation again.
+### 2. Evaluate incoming feedback
+
+Evaluate the candidate findings returned by the review subagents in the main session. Do not delegate this evaluation again.
 
 For each candidate finding:
 
@@ -35,11 +37,11 @@ For each candidate finding:
 3. Accept, reject, or request clarification with a concrete reason.
 4. Check whether the proposed correction expands scope, changes the intended contract, or adds unused behavior.
 
-Drop unsupported findings and merge duplicates with the same root cause. Push back directly on incorrect or out-of-scope feedback. The main session reports only accepted findings and concrete coverage gaps.
+Drop unsupported findings and merge duplicates with the same root cause. Push back directly on incorrect or out-of-scope feedback. Report only accepted findings and concrete coverage gaps.
 
-## Clean up a scoped diff
+### 3. Apply accepted fixes when requested
 
-Use this mode when the user asks to improve a change before completion or integration. Run the delegated review first, evaluate the returned feedback, then apply only accepted in-scope fixes. Preserve the intended contract and validate the changed behavior without re-running a second review pass unless the user requests one.
+If the user requested fixes or cleanup, apply only accepted in-scope corrections after evaluating all subagent feedback. Preserve the intended contract and validate the changed behavior. Do not run a second review pass unless the user requests one.
 
 ## Validate
 
