@@ -1,58 +1,45 @@
 ---
 name: code-review
-description: Use when inspecting a change for defects, evaluating incoming review feedback, or cleaning up a scoped diff before completion or integration.
+description: Use when reviewing code.
 ---
 
 # Code Review
 
-Find material defects in a defined change, evaluate claims against repository evidence, and apply in-scope fixes when requested.
+Delegate every change review to focused subagents, evaluate their candidate findings in the main session, and report or address the verified result.
 
-## Shared review principles
-
-Establish the intended behavior, repository conventions, and exact diff or feedback items. Load authoritative `pr://` or `issue://` context when available, and inspect the current code and tests instead of relying on summaries. If required scope cannot be inferred, ask for the smallest missing fact.
-
-Choose the mode from the requested outcome: findings for a change review, evidence-backed dispositions for incoming feedback, or an improved diff for cleanup. When a request combines outcomes, satisfy each without repeating the same inspection.
+## Authorization
 
 Review and evaluation requests authorize inspection and reporting only. Requests to address, fix, or clean up a change authorize in-scope local edits and non-destructive validation. Confirm before external writes, destructive actions, changing the intended public contract, or materially expanding scope.
 
-## Delegate proportionally
+## Required prompts
 
-Review small, scoped changes directly. Delegate to one or more `reviewer` agents when independent judgment, breadth, or risk materially improves coverage. Batch reviewers only for genuinely independent angles.
+Read both supporting files before reviewing a change:
 
-Add a `security-reviewer` when the change crosses a trust boundary or materially affects authentication, authorization, secrets, cryptography, or handling of untrusted input. Give every agent the exact scope, intended behavior, relevant repository constraints, and a distinct review angle.
-
-Agent reports are candidate findings. Confirm each reported location, failure mechanism, severity, and applicability against the current files. Drop unsupported findings and synthesize one deduplicated result.
+- [`orchestrator-prompt.md`](./orchestrator-prompt.md) is the main-session contract for scope, task routing, aggregation, and final findings.
+- [`category-reviewer-prompt.md`](./category-reviewer-prompt.md) is the prompt and strict output contract for every review subagent.
 
 ## Review a change
 
-Use this mode when the user asks to inspect a diff, pull request, commit, or set of files for defects.
+Use this mode for a diff, working tree, development branch, commit, pull request, or defined file set.
 
-Prioritize defects affecting correctness, security, data integrity, compatibility, performance, and maintainability. Check for missing requirements, regressions, unhandled boundaries, duplicated behavior, unnecessary complexity, and tests that do not defend the changed contract.
-
-Report findings in severity order:
-
-- **P0** — immediate, broad, or irreversible harm;
-- **P1** — release-blocking defect in normal use;
-- **P2** — real defect with limited impact or a practical workaround;
-- **P3** — worthwhile but non-blocking correction.
-
-Each finding must include the exact file and location, failure scenario, repository evidence, specific correction, and confidence. Do not inflate style preferences into defects. If no material finding exists, say so and identify any validation gap.
+Always hand the review to subagents through the workflow in `orchestrator-prompt.md`. Delegate even a small or single-category change. The main session coordinates scope and tasks; it does not perform a second direct review.
 
 ## Evaluate incoming feedback
 
-Use this mode when the user provides existing review comments and asks whether they are correct or asks to address them.
+Use this mode to evaluate candidate findings returned by review subagents. Do not delegate this evaluation again.
 
-For each comment:
+For each candidate finding:
 
-1. Verify the technical claim against current code, requirements, and supported environments.
-2. Accept, reject, or request clarification with evidence.
-3. Check whether the proposed correction expands scope or adds unused behavior.
+1. Confirm the reported location belongs to the active scope and matches the current code.
+2. Verify the failure scenario, repository evidence, severity, and supported environments.
+3. Accept, reject, or request clarification with a concrete reason.
+4. Check whether the proposed correction expands scope, changes the intended contract, or adds unused behavior.
 
-Push back directly on incorrect or out-of-scope advice.
+Drop unsupported findings and merge duplicates with the same root cause. Push back directly on incorrect or out-of-scope feedback. The main session reports only accepted findings and concrete coverage gaps.
 
 ## Clean up a scoped diff
 
-Use this mode when the user asks to improve an existing diff before completion or integration. Inspect only the defined change for material correctness, maintainability, performance, and test-quality problems. Fix defects within that change directly while preserving its intended contract.
+Use this mode when the user asks to improve a change before completion or integration. Run the delegated review first, evaluate the returned feedback, then apply only accepted in-scope fixes. Preserve the intended contract and validate the changed behavior without re-running a second review pass unless the user requests one.
 
 ## Validate
 
