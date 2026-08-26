@@ -1,20 +1,31 @@
 # omp-skills
 
-A personal skills library for [Oh My Pi](https://github.com/can1357/oh-my-pi). The skills target OMP's built-in tool surface and execution workflows.
+A personal skills and command library for [Oh My Pi](https://github.com/can1357/oh-my-pi). The content targets OMP's built-in tool surface and execution workflows.
 
 ## Installation
 
-OMP discovers user skills one directory below `~/.omp/agent/skills/`. Clone the repository, then symlink each skill directory:
+OMP discovers user skills one directory below `~/.omp/agent/skills/` and command files in `~/.omp/agent/commands/`. Clone the repository, then symlink each entry:
 
 ```sh
 git clone https://github.com/fgladisch/omp-skills.git ~/.omp/omp-skills
-mkdir -p ~/.omp/agent/skills
+mkdir -p ~/.omp/agent/skills ~/.omp/agent/commands
 for skill in "$HOME"/.omp/omp-skills/skills/*; do
   ln -sfn "$skill" "$HOME/.omp/agent/skills/$(basename "$skill")"
 done
+for command in "$HOME"/.omp/omp-skills/commands/*.md; do
+  ln -sfn "$command" "$HOME/.omp/agent/commands/$(basename "$command")"
+done
 ```
 
-For local development, replace `"$HOME"/.omp/omp-skills/skills/*` with the path to this checkout's `skills/*`. Restart OMP after adding or removing skills so discovery runs again.
+For local development, replace `"$HOME"/.omp/omp-skills` with the path to this checkout. Restart OMP after adding or removing skills or commands so discovery runs again.
+
+## Commands
+
+| Command        | Purpose                                                        |
+| -------------- | -------------------------------------------------------------- |
+| `local-review` | Review local changes and apply accepted fixes                  |
+| `pr-create`    | Create a PR and address Claude review feedback until LGTM      |
+| `pr-review`    | Address PR review findings, resolve feedback, commit, and push |
 
 ## Skills
 
