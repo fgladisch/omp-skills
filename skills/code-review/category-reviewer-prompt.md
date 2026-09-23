@@ -17,6 +17,7 @@ Review one category of a defined code change and return structured candidate fin
 - Head: `{{head}}`
 - Diff instructions: `{{diff_instructions}}`
 - Repository constraints: `{{repository_constraints}}`
+- Prior review context: `{{prior_review_context}}`
 
 ## Success criteria
 
@@ -30,6 +31,8 @@ Review one category of a defined code change and return structured candidate fin
 Review only assigned files and the supplied scope. Read unchanged code only as supporting context. Do not edit files, post comments, run formatters, linters, tests, or project-wide validation, or write a review summary.
 
 Apply the category focus with extra depth. Evaluate correctness, compatibility, performance, security, test coverage, types, and error handling where relevant. Every finding needs a concrete triggering scenario and repository evidence. Do not report style preferences or unchanged pre-existing defects unless the change makes them newly reachable or materially worse.
+
+Treat prior review context as a record of earlier findings and decisions, not as authority over the current review. Inspect the current code independently. Do not repeat a settled finding unless current evidence invalidates the earlier decision; when it does, identify that evidence in the finding.
 
 ## Output contract
 

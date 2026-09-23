@@ -43,6 +43,7 @@ Populate:
 - Changed files: `{{changed_files}}`
 - Untracked files: `{{untracked_files}}`
 - Intended behavior: `{{intended_behavior}}`
+- Prior review context: `{{prior_review_context}}`
 - Repository constraints: `{{repository_constraints}}`
 
 A user-defined base, head, file set, or review scope takes precedence. Otherwise:
@@ -53,6 +54,8 @@ A user-defined base, head, file set, or review scope takes precedence. Otherwise
 - **Defined file set:** preserve the user's files and infer only the comparison needed to inspect their requested change.
 
 If competing scope interpretations would materially change the review, ask for the smallest missing fact before dispatch.
+
+Use `None.` when no prior review context exists. When context is supplied, preserve the findings, decisions, rationale, fixes, and validation evidence from earlier cycles. Treat prior decisions as context rather than authority and resolve the active scope from the current code.
 
 ## Classify and dispatch
 
@@ -67,7 +70,7 @@ Assign files to one or more categories:
 
 Assign any file that matches no specialized category to Logic. Files may appear in multiple categories. Skip empty categories and cap dispatch at four subagents, one per category. Delegate even when only one category is populated.
 
-Use `reviewer` for Logic, Tools/API, and Tests. Use `security-reviewer` for Security. Build every task from `category-reviewer-prompt.md` with exact assigned files and diff instructions. Each task must use the task tool's `# Target`, `# Change`, and `# Acceptance` sections and explicitly skip edits, formatters, linters, tests, and project-wide validation.
+Use `reviewer` for Logic, Tools/API, and Tests. Use `security-reviewer` for Security. Build every task from `category-reviewer-prompt.md` with exact assigned files, diff instructions, and prior review context. Each task must use the task tool's `# Target`, `# Change`, and `# Acceptance` sections and explicitly skip edits, formatters, linters, tests, and project-wide validation.
 
 Pass each task an invocation-specific `outputSchema` in strict mode. Require:
 

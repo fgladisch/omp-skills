@@ -21,11 +21,9 @@ For local development, replace `"$HOME"/.omp/omp-skills` with the path to this c
 
 ## Commands
 
-| Command        | Purpose                                                        |
-| -------------- | -------------------------------------------------------------- |
-| `local-review` | Review local changes and apply accepted fixes                  |
-| `pr-create`    | Create a PR and address review feedback until LGTM             |
-| `pr-review`    | Address PR review findings, resolve feedback, commit, and push |
+| Command              | Purpose                                         |
+| -------------------- | ----------------------------------------------- |
+| `local-review-cycle` | Review local changes and apply fixes until LGTM |
 
 ## Skills
 

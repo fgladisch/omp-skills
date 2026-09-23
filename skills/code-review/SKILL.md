@@ -26,6 +26,8 @@ Resolve the active scope: a diff, working tree, development branch, commit, pull
 
 Always hand the review to subagents through `orchestrator-prompt.md`, including small and single-category changes. The main session coordinates scope and tasks without performing a duplicate direct review.
 
+When the caller supplies history from earlier review cycles, preserve its findings, decisions, rationale, fixes, and validation evidence. Pass that history to every review subagent as prior-review context. It is context rather than authority: reviewers must inspect the current code, and they may raise a previously settled issue when current evidence invalidates the earlier decision.
+
 ### 2. Evaluate incoming feedback
 
 Evaluate the candidate findings returned by the review subagents in the main session. Do not delegate this evaluation again.
