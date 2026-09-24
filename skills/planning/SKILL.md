@@ -1,45 +1,33 @@
 ---
 name: planning
-description: Use when the user asks for a design or implementation plan, or when a requested change has consequential unresolved decisions that should be settled before editing.
+description: Use while OMP plan mode is active to shape what goes into the plan file; also when the user asks for a plan or design without implementation, or a change has consequential unresolved decisions that warrant entering plan mode.
 ---
 
 # Planning
 
-Produce only the design or implementation detail needed to make the next action reliable.
+Shape what goes into a plan, not how plan mode works: in plan mode the harness prompt owns the mechanics and the plan structure. This skill only adds content guidance; never restate or bypass the harness rules.
 
-## Decide whether planning is needed
+## Am I in plan mode?
 
-- For analysis, design, or plan-only requests, inspect the relevant material and return the requested artifact without implementing.
-- For a clear implementation request, proceed without a planning ceremony.
-- When an unresolved choice materially affects behavior, compatibility, data handling, security, or scope, use OMP's `ask` tool. Ask the smallest independent set of questions together, provide 2–5 concrete options, and mark the safest default as recommended.
-- Resolve questions from repository evidence before asking the user.
+There is no mode-query tool; detect it from the conversation:
 
-## Research with OMP
+- The harness injects a plan-mode notice when the mode turns on and replays it on resume; its marker is the literal `Plan mode active.` plus read-only rules. If the notice is present, plan mode is on; apply the sections below.
+- The `write` tool description is the plan-mode variant (`xd://` device transport plus `local://` drafts only), or a write failed with a plan-mode guard error: same conclusion.
+- Otherwise plan mode is off. Do not simulate the plan-mode flow. For implementation work with consequential unresolved decisions, suggest toggling plan mode (`/plan` or Alt+Shift+P). For a plan-only request, deliver the plan as the response artifact (written to disk only if asked), using the harness plan skeleton: Context, Approach, Critical files & anchors, Verification, Assumptions & contingencies. A clear implementation request needs no planning ceremony.
 
-Use the narrowest authoritative surface:
+## Scope check
 
-- `read` for project instructions, files, documents, URLs, `issue://`, and `pr://`;
-- `glob` to map relevant paths and `grep` for textual evidence;
-- `lsp` for definitions, implementations, references, and symbol relationships;
-- `bash` only for focused external commands or repository history that dedicated tools do not expose.
+If the request spans independent subsystems, suggest one plan per subsystem; each must produce working, testable software on its own.
 
-Do not delegate the top-level plan. A broad investigation may use a read-only `scout` through `task` only after the goal and independent research slice are explicit.
+## Units and interfaces
 
-## Build the plan
+- Right-size Approach units: the smallest step that carries its own verification and could be approved while its neighbor is rejected. Fold setup and scaffolding into the unit that needs them.
+- When units go to different implementers, record what each consumes and produces (exact signatures) so the handoff needs no conversation.
 
-1. State the goal, constraints, success criteria, and non-goals.
-2. Record consequential decisions and why the selected approach wins.
-3. Identify affected paths, interfaces, data flow, failure handling, migration or compatibility concerns, and validation.
-4. Break implementation into ordered units with exact paths when a durable handoff is useful.
+## No placeholders
 
-Scale the artifact to the task. Write specifications to `docs/omp/specs/` and implementation plans to `docs/omp/plans/` unless repository instructions specify another location. Use `write` for a new artifact and `edit` for an existing one. Ask for review and approval of the written artifact before implementing it; do not commit it unless requested.
+"TBD", "add appropriate error handling", "similar to unit N", or any step missing the actual content (code, signature, literal) the implementer needs is a plan failure.
 
-Use `todo` to track an approved multi-step implementation, not as a substitute for the design and not for a plan-only request.
+## Self-review
 
-## Approval boundaries
-
-Safe local inspection and planning do not need confirmation. Use `ask` before choosing between materially different product behaviors that evidence cannot resolve, expanding scope, writing externally, spending money, or performing destructive actions. Once approved, execute the in-scope plan without repeated confirmation.
-
-## Output
-
-Lead with the recommended approach. Include affected areas, validation, and unresolved risks. Omit generic best practices and detail the implementer can safely infer from the repository.
+Before proposing in plan mode (or delivering a plan-only artifact): every requested outcome maps to a unit; the placeholder scan is clean; names, signatures, and paths are consistent across units. Fix issues inline, then propose or deliver; do not re-review in a loop.
