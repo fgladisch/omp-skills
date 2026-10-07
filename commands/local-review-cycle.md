@@ -2,7 +2,7 @@
 description: Review local changes and apply fixes until LGTM
 ---
 
-Run a local review cycle over the complete intended change using the `code-review` skill. Do not create or use a pull request for review.
+Run a local review cycle over the complete intended change using the `local-code-review` skill. Do not create or use a pull request for review.
 
 For each cycle:
 
