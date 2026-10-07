@@ -1,9 +1,9 @@
 ---
-name: code-review
-description: Use when reviewing code.
+name: local-code-review
+description: Use when reviewing local code changes in a working tree, branch, commit, or defined file set.
 ---
 
-# Code Review
+# Local Code Review
 
 Delegate every change review to focused subagents, evaluate their candidate findings in the main session, and report or address the verified result.
 

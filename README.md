@@ -17,21 +17,22 @@ for command in "$HOME"/.omp/omp-skills/commands/*.md; do
 done
 ```
 
-For local development, replace `"$HOME"/.omp/omp-skills` with the path to this checkout. Restart OMP after adding or removing skills or commands so discovery runs again.
+For local development, replace `"$HOME"/.omp/omp-skills` with the path to this checkout. If upgrading from `code-review`, remove its old symlink from `~/.omp/agent/skills/` and rerun the installation loops to discover `local-code-review` and the restored `pr-create` command. Restart OMP after adding or removing skills or commands so discovery runs again.
 
 ## Commands
 
-| Command              | Purpose                                         |
-| -------------------- | ----------------------------------------------- |
-| `local-review-cycle` | Review local changes and apply fixes until LGTM |
+| Command              | Purpose                                            |
+| -------------------- | -------------------------------------------------- |
+| `local-review-cycle` | Review local changes and apply fixes until LGTM    |
+| `pr-create`          | Create a PR and address review feedback until LGTM |
 
 ## Skills
 
 | Skill                            | When to use                                                                                                           |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `code-review`                    | When reviewing code                                                                                                   |
 | `commit`                         | When the user asks to commit changes; follows repository conventions with gitmoji as the fallback                     |
 | `finalizing-changes`             | When a coherent set of changes is ready to validate and then commit, merge, publish as a PR, or retain                |
+| `local-code-review`              | When reviewing local code changes in a working tree, branch, commit, or defined file set                              |
 | `planning`                       | While plan mode is active to shape plan contents; also for plan-only requests or consequential unresolved decisions   |
 | `systematic-debugging`           | When a bug, failing test, build failure, performance regression, or unexpected behavior needs diagnosis               |
 | `test-driven-development`        | For behavior changes and bug fixes when a test or executable regression check can establish the expected result first |
@@ -44,7 +45,7 @@ flowchart TB
   P["planning<br/>(when requested or decisions remain)"]
   SD["systematic-debugging"]
   TDD["test-driven-development"]
-  CR["code-review"]
+  CR["local-code-review"]
   V["verification-before-completion"]
   C["commit"]
   F["finalizing-changes"]

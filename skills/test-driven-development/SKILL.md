@@ -32,7 +32,7 @@ Tests must be deterministic, isolated, and resistant to implementation-only chan
 
 ## Review
 
-After the Green and Refactor steps, apply `code-review` when the change carries meaningful compatibility, security, data-integrity, or operational risk. Keep review optional for small, low-risk changes.
+After the Green and Refactor steps, apply `local-code-review` when the change carries meaningful compatibility, security, data-integrity, or operational risk. Keep review optional for small, low-risk changes.
 
 ## Practical exceptions
 
