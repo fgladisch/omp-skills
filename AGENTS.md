@@ -30,6 +30,18 @@ If any of those checks fail, fix `README.md` (or the skill) before considering t
 - `SKILL.md` starts with YAML frontmatter containing `name` and `description`. OMP exposes the description in discovered skill metadata and uses it to decide when to load the skill, so keep it precise and trigger-oriented.
 - Supporting files (references, templates, examples) live alongside `SKILL.md` in the same directory and are referenced by relative path.
 
+## Verification
+
+Formatting is the only automated check. The repository has no `package.json`; do not run `pnpm install`, `npm install`, or other package-manager commands, because they create untracked `package.json`, lockfile, and `node_modules` artifacts.
+
+Before finishing any change, run Prettier through `npx` from the repository root:
+
+```sh
+npx --yes prettier@3 --check .
+```
+
+If it reports files, format them with `npx --yes prettier@3 --write <files>` and run the check again. Prettier reads `.prettierrc.json`.
+
 ## Oh My Pi conventions used in this repo
 
 - OMP auto-loads `AGENTS.md` as project context. Prefer `AGENTS.md` for repository instructions.
