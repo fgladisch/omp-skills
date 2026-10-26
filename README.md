@@ -17,7 +17,7 @@ for command in "$HOME"/.omp/omp-skills/commands/*.md; do
 done
 ```
 
-For local development, replace `"$HOME"/.omp/omp-skills` with the path to this checkout. If upgrading from `code-review`, remove its old symlink from `~/.omp/agent/skills/` and rerun the installation loops to discover `local-code-review` and the restored `pr-create` command. If upgrading from a version with `planning`, remove its dangling symlink from `~/.omp/agent/skills/`. Restart OMP after adding or removing skills or commands so discovery runs again.
+For local development, replace `"$HOME"/.omp/omp-skills` with the path to this checkout. If upgrading from `code-review`, remove its old symlink from `~/.omp/agent/skills/` and rerun the installation loops to discover `local-code-review` and the restored `pr-create` command. Restart OMP after adding or removing skills or commands so discovery runs again.
 
 ## Commands
 
