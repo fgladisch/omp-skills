@@ -75,11 +75,8 @@ Arrows mean the source skill explicitly applies the target skill, and dashed edg
 Install the CLI once, then initialize each repository with the core profile:
 
 ```sh
-npm install -g @fission-ai/openspec@latest
 openspec init --tools oh-my-pi --profile core
 ```
-
-`init` creates `openspec/` plus generated skills in `.omp/skills/openspec-*/` and commands in `.omp/commands/opsx-*.md`. Commit all of them, so proposals and specs are shared in pull requests. OpenSpec owns the generated files, and `openspec update` regenerates them. Restart OMP afterwards and confirm that `/opsx-propose` is available.
 
 A change runs through these steps:
 
