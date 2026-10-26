@@ -79,17 +79,7 @@ npm install -g @fission-ai/openspec@latest
 openspec init --tools oh-my-pi --profile core
 ```
 
-`init` creates `openspec/` plus generated skills in `.omp/skills/openspec-*/` and commands in `.omp/commands/opsx-*.md`. OpenSpec owns the generated files, and `openspec update` regenerates them. Restart OMP afterwards and confirm that `/opsx-propose` is available.
-
-To use OpenSpec in a team repository without sharing it, add these lines to `.gitignore`:
-
-```gitignore
-openspec/
-.omp/skills/openspec-*/
-.omp/commands/opsx-*.md
-```
-
-Drop the `openspec/` line to share proposals and specs in pull requests. Ignored artifacts have no Git history, and `git clean -fdx` deletes them.
+`init` creates `openspec/` plus generated skills in `.omp/skills/openspec-*/` and commands in `.omp/commands/opsx-*.md`. Commit all of them, so proposals and specs are shared in pull requests. OpenSpec owns the generated files, and `openspec update` regenerates them. Restart OMP afterwards and confirm that `/opsx-propose` is available.
 
 A change runs through these steps:
 
@@ -98,7 +88,7 @@ A change runs through these steps:
 3. Create the topic branch, then `/opsx-apply` to implement the tasks.
 4. `/local-review-cycle` or `local-code-review` to review the result.
 5. `finalizing-changes` or `/pr-create` to publish it.
-6. After the merge, `/opsx-archive` on the base branch to merge the delta specs into `openspec/specs/`. Commit the result when `openspec/` is tracked.
+6. After the merge, `/opsx-archive` on the base branch to merge the delta specs into `openspec/specs/`, then commit the result.
 
 ## OMP tooling
 

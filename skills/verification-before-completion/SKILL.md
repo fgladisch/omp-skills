@@ -34,7 +34,7 @@ Treat `task` results as leads. Inspect the resulting artifact and independently 
 
 ## OpenSpec tasks
 
-An OpenSpec change is active when `openspec list --json` reports a non-null `root` and the current work implements one of the listed changes: the change the user or `/opsx-apply` named, otherwise the only listed change. If several are listed and the work does not show which one it implements, ask. Without the CLI, a root, or a matching change, skip this section. Find the artifacts with `openspec status --change <name> --json` (`changeRoot`, `artifactPaths`) and open them with `read`; `glob` and `grep` skip `openspec/` when it is git-ignored.
+An OpenSpec change is active when `openspec list --json` reports a non-null `root` and the current work implements one of the listed changes: the change the user or `/opsx-apply` named, otherwise the only listed change. If several are listed and the work does not show which one it implements, ask. Without the CLI, a root, or a matching change, skip this section. Find the artifacts with `openspec status --change <name> --json` (`changeRoot`, `artifactPaths`) and open them with `read`.
 
 Every checked `- [x]` item in the change's `tasks.md` is a completion claim. Check an item only after fresh evidence proves it, and uncheck an item whose evidence later fails. Only the main session checks items; a subagent's report is a lead, as under Delegated work. Before claiming the change is complete, confirm that `openspec list --json` shows equal `completedTasks` and `totalTasks` for it, and that `openspec validate <name> --strict` passes. Report any failure as remaining work.
 

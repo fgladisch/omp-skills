@@ -18,7 +18,7 @@ For a service needed by the check, start and supervise it with `hub`, not a deta
 
 ### OpenSpec scenarios
 
-An OpenSpec change is active when `openspec list --json` reports a non-null `root` and the current work implements one of the listed changes: the change the user or `/opsx-apply` named, otherwise the only listed change. If several are listed and the work does not show which one it implements, ask. Without the CLI, a root, or a matching change, skip this section. Find the artifacts with `openspec status --change <name> --json` (`changeRoot`, `artifactPaths`) and open them with `read`; `glob` and `grep` skip `openspec/` when it is git-ignored.
+An OpenSpec change is active when `openspec list --json` reports a non-null `root` and the current work implements one of the listed changes: the change the user or `/opsx-apply` named, otherwise the only listed change. If several are listed and the work does not show which one it implements, ask. Without the CLI, a root, or a matching change, skip this section. Find the artifacts with `openspec status --change <name> --json` (`changeRoot`, `artifactPaths`) and open them with `read`.
 
 For an active change, the delta specs define the behaviors for Red. Each `#### Scenario:` with its WHEN and THEN lines becomes one failing test, named after the scenario and written before the `tasks.md` item that implements it. A scenario that cannot be automated gets the validation described under Practical exceptions. When the code shows that a scenario is wrong or missing, correct the delta spec first, then write its test, so the specs and tests do not drift apart.
 

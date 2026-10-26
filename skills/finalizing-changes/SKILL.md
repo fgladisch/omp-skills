@@ -18,11 +18,11 @@ Validate a completed increment, present only feasible dispositions, and perform 
 
 ## OpenSpec changes
 
-An OpenSpec change is active when `openspec list --json` reports a non-null `root` and the change set implements one of the listed changes: the change the user named, otherwise the only listed change. If several are listed and the change set does not show which one it implements, ask. Without the CLI, a root, or a matching change, skip this section. Find the artifacts with `openspec status --change <name> --json` (`changeRoot`, `artifactPaths`) and open them with `read`; `glob` and `grep` skip `openspec/` when it is git-ignored.
+An OpenSpec change is active when `openspec list --json` reports a non-null `root` and the change set implements one of the listed changes: the change the user named, otherwise the only listed change. If several are listed and the change set does not show which one it implements, ask. Without the CLI, a root, or a matching change, skip this section. Find the artifacts with `openspec status --change <name> --json` (`changeRoot`, `artifactPaths`) and open them with `read`.
 
 For an active change:
 
-- Run `git check-ignore -q openspec/`. When it succeeds, the folder is ignored: keep the artifacts out of the change set and never force-add them. Otherwise, the change's directory under `openspec/changes/` belongs to the intended change set.
+- The change's directory under `openspec/changes/` belongs to the intended change set; commit it together with the code.
 - Apply the OpenSpec checks in `verification-before-completion` before presenting outcomes: every `tasks.md` item checked with evidence, and `openspec validate <name> --strict` passing.
 - Never archive the change as part of finalizing. Archiving moves it into `openspec/changes/archive/` and merges its delta specs into `openspec/specs/`; do it only after the code reaches the base branch, as a separate request. Name `/opsx-archive <name>` as the next step in the final report.
 
@@ -79,7 +79,7 @@ this approach was chosen, including relevant constraints or tradeoffs.>
 
 - Describe outcomes and behavior under **What**, not a file inventory or line-by-line retelling of the diff. State intentional non-goals when the scope could be misunderstood.
 - Put decision context that the code cannot preserve under **Why**. Links to issues, incidents, or design documents supplement this explanation; they do not replace it.
-- For an active OpenSpec change, draw **What** from the proposal's scope and the delta specs' requirements, and **Why** from the proposal's motivation. Write both as standalone prose, because reviewers may not use OpenSpec. Link the change directory only when it is part of the pull request; when `openspec/` is ignored, never cite local artifact paths.
+- For an active OpenSpec change, draw **What** from the proposal's scope and the delta specs' requirements, and **Why** from the proposal's motivation. Write both as standalone prose, because reviewers may not use OpenSpec, and link the change directory for the full proposal and specs.
 - Report only fresh, observed checks under **Verification**. Include reproduction and validation steps for bug fixes, and before/after evidence for user-visible visual changes.
 - Add a **Risks** section when the change has breaking behavior, migrations, rollout requirements, feature flags, known shortcomings, or meaningful operational risk.
 - Use an issue-closing keyword such as `Closes #123` only when the pull request targets the default branch and fully resolves that issue. Otherwise, use a plain reference.
