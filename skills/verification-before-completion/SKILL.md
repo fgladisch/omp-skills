@@ -32,9 +32,21 @@ Choose checks proportional to the change and risk. Run the changed path through 
 
 Treat `task` results as leads. Inspect the resulting artifact and independently run the checks required for the final claim. A completed agent job proves only that the agent returned.
 
+## Review notes
+
+Notes in a live Hunk session are requests from the user or other agents. Act on them before any completion claim:
+
+1. Run `hunk session list --json` and keep the sessions whose `repoRoot` matches the workspace. If none matches, skip this check.
+2. After the final change, run `hunk session comment list <selector> --type all --json`, using `--repo <repo-root>` or, when several sessions match, each `sessionId`.
+3. Group notes into threads by `parentId`. A thread is settled when its latest reply starts with `Fixed:`, `Rejected:`, `Duplicate of`, or `Answered:`; every other thread is open, including user notes without replies and threads a later user reply reopened.
+4. Handle every open thread within the task's authorization: fix and validate it, then reply `Fixed:` with a `Validation:` rationale; push back with `Rejected:` and the concrete reason; or reply `Answered:` to a question. Use `hunk session comment add <selector> --reply-to <note-id> --summary <text> [--rationale <text>]`.
+5. Report every thread that stays open, such as one outside the task's scope or awaiting the user, and do not claim completion of the work it covers. Accepted findings from an inspection-only review are that review's result; report them instead of fixing them.
+
+The full note protocol lives in the `local-code-review` skill's `Hunk session` section.
+
 ## Completion gate
 
-Confirm all `todo` acceptance items are complete. If any item is blocked, report that work remains and do not claim completion. Stop temporary `hub` processes, and confirm affected callsites, tests, documentation, and generated artifacts are updated or intentionally unchanged.
+Confirm all `todo` acceptance items are complete. If any item is blocked, report that work remains and do not claim completion. Confirm every open Hunk thread is handled or reported. Stop temporary `hub` processes, and confirm affected callsites, tests, documentation, and generated artifacts are updated or intentionally unchanged.
 
 ## Reporting
 
