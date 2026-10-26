@@ -42,16 +42,18 @@ Working-tree reviews include untracked files by default. Confirm the loaded file
 
 ### Note protocol
 
-Every finding is a root note; every decision, fix, and answer is a reply in that note's thread. Batch notes with `hunk session comment apply <selector> --stdin --json` so multi-line rationale needs no shell quoting; use `hunk session comment add` for one note or reply.
+Every finding is a root note; every decision, fix, and answer is a reply in that note's thread. Post each note or reply with its own `hunk session comment add` call, so a rejected note affects only itself; do not build JSON batches.
 
 Root finding notes:
 
-- `filePath` and `newLine` at the first line of the smallest useful changed span, or `oldLine` for removed code. When the defect lives outside a loaded hunk, anchor at the changed line that causes it.
-- `summary`: `[P<n>] <title>`, using the P0-P3 scale from `orchestrator-prompt.md`.
-- `rationale`: lines starting `Location:` (`<file>:<line_start>-<line_end>`), `Scenario:`, `Evidence:`, `Impact:`, `Correction:`, and `Confidence:` (0 through 1).
-- `author`: `review/<category>` for review subagents, such as `review/logic`.
+- `--file` and `--new-line` at the first line of the smallest useful changed span, or `--old-line` for removed code. When the defect lives outside a loaded hunk, anchor at the changed line that causes it.
+- `--summary`: `[P<n>] <title>`, using the P0-P3 scale from `orchestrator-prompt.md`.
+- `--rationale`: lines starting `Location:` (`<file>:<line_start>-<line_end>`), `Scenario:`, `Evidence:`, `Impact:`, `Correction:`, and `Confidence:` (0 through 1).
+- `--author`: `review/<category>` for review subagents, such as `review/logic`.
 
-Replies use `replyTo` with the root note ID, author `review/main` for the main session, and one of these summary prefixes:
+Wrap `--summary` and `--rationale` in single quotes, write multi-line rationale with real line breaks, and keep single quotes out of note text. If Hunk rejects a note, do not retry it; report the finding and the Hunk error to the caller instead, which review subagents do through `gaps`.
+
+Replies use `--reply-to` with the root note ID, `--author review/main` for the main session, and one of these summary prefixes:
 
 | Prefix                     | Meaning                                                                          | Thread state |
 | -------------------------- | -------------------------------------------------------------------------------- | ------------ |

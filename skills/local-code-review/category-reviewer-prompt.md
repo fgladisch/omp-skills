@@ -37,24 +37,30 @@ Treat existing threads and prior review context as a record of earlier findings 
 
 ## Post findings
 
-Post all findings in one batch after reviewing every assigned file:
+Post each finding as its own note after reviewing every assigned file. Use plain flags, not JSON:
 
 ```sh
-hunk session comment apply {{hunk_selector}} --stdin --json <<'JSON'
-{"comments":[{"filePath":"<file>","newLine":<line_start>,"summary":"[P<n>] <title>","rationale":"Location: <file>:<line_start>-<line_end>\nScenario: …\nEvidence: …\nImpact: …\nCorrection: …\nConfidence: <0-1>","author":"review/{{category_slug}}"}]}
-JSON
+hunk session comment add {{hunk_selector}} --file <file> --new-line <line_start> --author review/{{category_slug}} --json \
+  --summary '[P<n>] <title>' \
+  --rationale 'Location: <file>:<line_start>-<line_end>
+Scenario: …
+Evidence: …
+Impact: …
+Correction: …
+Confidence: <0-1>'
 ```
 
 - Rate severity P0-P3: P0 immediate, broad, or irreversible harm; P1 release-blocking defect in normal use; P2 real defect with limited impact or a practical workaround; P3 worthwhile, non-blocking correction.
-- Anchor at the first line of the smallest useful changed span with `newLine`, or with `oldLine` for removed code. If the defect lives outside a loaded hunk, anchor at the changed line that causes it and give the real location in `Location:`.
-- `apply` validates the whole batch before writing. If it rejects an anchor, fix that item's anchor and resubmit the batch; nothing from the rejected batch was posted.
-- Skip the command when you found no material issue.
+- Wrap `--summary` and `--rationale` in single quotes and write the rationale lines as real line breaks. Keep single quotes out of note text; cite code by file and line instead of quoting it.
+- Pick the anchor from the hunk ranges in `hunk session review {{hunk_selector}} --json`: the first line of the smallest useful changed span with `--new-line`, or `--old-line` for removed code. If the defect lives outside a loaded hunk, anchor at the changed line that causes it and give the real location in `Location:`.
+- Do not retry a rejected note. Record it in `gaps` with its file, line, summary, and the Hunk error, then continue with the next finding.
+- Post nothing when you found no material issue.
 
 ## Completion report
 
 Return the object required by the task's strict `outputSchema`:
 
-- `note_ids`: the `commentId` values from the `apply` result, in order.
+- `note_ids`: the `commentId` from each successful `comment add` result, in order.
 - `reviewed_files`: every assigned file actually inspected.
 - `gaps`: concrete reasons an assigned file or relevant part of the scope could not be reviewed, including any finding that could not be posted to Hunk.
 
