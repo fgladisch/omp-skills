@@ -1,50 +1,103 @@
 ---
 name: local-code-review
-description: Use when reviewing local code changes in a working tree, branch, commit, or defined file set.
+description: Use when reviewing local code changes in a working tree, branch, commit, or defined file set; records findings and decisions as notes in a live Hunk session.
 ---
 
 # Local Code Review
 
-Delegate every change review to focused subagents, evaluate their candidate findings in the main session, and report or address the verified result.
+Delegate every change review to focused subagents that post candidate findings as notes in a live Hunk session. Evaluate those notes in the main session, record each decision as a reply in the same thread, and address accepted findings when fixes are requested.
 
 ## Authorization
 
-A user review request or an explicit handoff from another skill authorizes an inspection-only review. Do not edit the code unless the user also asks you to fix, address, or clean it up. When they do, make only the local changes needed for accepted findings and run non-destructive checks. Ask first before writing to external systems, taking destructive action, changing the intended public contract, or materially expanding the requested scope.
+A user review request or an explicit handoff from another skill authorizes an inspection-only review. Writing notes and replies to the live local Hunk session is part of every review; it is not an external write. Do not edit the code unless the user also asks you to fix, address, or clean it up. When they do, make only the local changes needed for accepted findings and run non-destructive checks. Ask first before writing to external systems, taking destructive action, changing the intended public contract, or materially expanding the requested scope.
 
 ## Required prompts
 
 Read both supporting files before reviewing a change:
 
-- [`orchestrator-prompt.md`](./orchestrator-prompt.md) is the main-session contract for scope, task routing, aggregation, and final findings.
-- [`category-reviewer-prompt.md`](./category-reviewer-prompt.md) is the prompt and strict output contract for every review subagent.
+- [`orchestrator-prompt.md`](./orchestrator-prompt.md) is the main-session contract for scope, task routing, evaluation, and the final summary.
+- [`category-reviewer-prompt.md`](./category-reviewer-prompt.md) is the prompt for every review subagent, including how it posts findings to Hunk.
+
+## Hunk session
+
+Hunk is the shared review surface. The user watches it; review subagents, the main session, and later agents communicate through its note threads. Never run interactive commands such as `hunk diff` or `hunk show`; control the user's window with `hunk session *` commands only.
+
+### Select the session
+
+Run `hunk session list --json` and keep the sessions whose `repoRoot` matches the workspace. With one match, use `--repo <repo-root>` as the session selector; with several, use the matching `sessionId`. If none exists, ask the user to launch `hunk diff` in their terminal and wait; the review cannot run without a session.
+
+### Load the scope
+
+Reload the session so it shows exactly the active review scope before dispatching reviewers, and again after applying fixes:
+
+| Scope                        | Reload command                                                      |
+| ---------------------------- | ------------------------------------------------------------------- |
+| Uncommitted working tree     | `hunk session reload <selector> -- diff`                            |
+| Development branch           | `hunk session reload <selector> -- diff <base_sha>`                 |
+| Explicit range, pull request | `hunk session reload <selector> -- diff <base>..<head>`             |
+| Single commit                | `hunk session reload <selector> -- show <sha>`                      |
+| Defined file set             | Append `-- <paths...>` to the matching command, after the reference |
+
+Working-tree reviews include untracked files by default. Confirm the loaded files with `hunk session review <selector> --json`; every scoped file must appear there, because notes can only anchor to lines inside a loaded diff hunk.
+
+### Note protocol
+
+Every finding is a root note; every decision, fix, and answer is a reply in that note's thread. Batch notes with `hunk session comment apply <selector> --stdin --json` so multi-line rationale needs no shell quoting; use `hunk session comment add` for one note or reply.
+
+Root finding notes:
+
+- `filePath` and `newLine` at the first line of the smallest useful changed span, or `oldLine` for removed code. When the defect lives outside a loaded hunk, anchor at the changed line that causes it.
+- `summary`: `[P<n>] <title>`, using the P0-P3 scale from `orchestrator-prompt.md`.
+- `rationale`: lines starting `Location:` (`<file>:<line_start>-<line_end>`), `Scenario:`, `Evidence:`, `Impact:`, `Correction:`, and `Confidence:` (0 through 1).
+- `author`: `review/<category>` for review subagents, such as `review/logic`.
+
+Replies use `replyTo` with the root note ID, author `review/main` for the main session, and one of these summary prefixes:
+
+| Prefix                     | Meaning                                                                          | Thread state |
+| -------------------------- | -------------------------------------------------------------------------------- | ------------ |
+| `Accepted: P<n> — <why>`   | Verified finding; the stated severity replaces the root's severity               | Open         |
+| `Clarification needed:`    | A concrete question for the user                                                 | Open         |
+| `Rejected: <why>`          | Unsupported, incorrect, or out-of-scope feedback                                 | Settled      |
+| `Duplicate of <id>: <why>` | Same root cause as another thread                                                | Settled      |
+| `Fixed: <change>`          | Correction applied; `rationale` starts `Validation:` with the command and result | Settled      |
+| `Answered: <answer>`       | A user question that needs no code change                                        | Settled      |
+
+A thread's state is decided by its latest reply. A root without replies is open, and a later user reply reopens a settled thread. User notes (`source: user` in `comment list --type all --json`) are review feedback: evaluate and answer them like candidate findings.
+
+### Session caveats
+
+- Note anchors keep their original line numbers when the code changes. Treat anchors and `Location:` lines as historical and re-locate the code by content before acting.
+- `comment list` hides notes whose file no longer appears in the loaded diff. Keep the same scope for every reload within one review.
+- Notes exist only while the Hunk window runs. If the session closes mid-review, ask the user to relaunch Hunk, then re-post every open thread from the conversation record before continuing.
+- Agent notes start hidden. Pass `--focus` only on the main session's first reply of a review so the user sees agent notes; review subagents never pass `--focus`, `navigate`, or `highlight`.
 
 ## Workflow
 
 ### 1. Review the change
 
-Resolve the active scope: a diff, working tree, development branch, commit, pull request, or defined file set.
+Resolve the active scope: a diff, working tree, development branch, commit, pull request, or defined file set. Select the Hunk session and load that scope.
 
 Always hand the review to subagents through `orchestrator-prompt.md`, including small and single-category changes. The main session coordinates scope and tasks without performing a duplicate direct review.
 
-When the caller supplies history from earlier review cycles, preserve its findings, decisions, rationale, fixes, and validation evidence. Pass that history to every review subagent as prior-review context. It is context rather than authority: reviewers must inspect the current code, and they may raise a previously settled issue when current evidence invalidates the earlier decision.
+Existing Hunk threads and caller-supplied history from earlier review cycles are prior-review context: findings, decisions, rationale, fixes, and validation evidence. Every review subagent reads the session's threads before reviewing. Prior context is not authority: reviewers must inspect the current code, and they may raise a previously settled issue when current evidence invalidates the earlier decision.
 
 ### 2. Evaluate incoming feedback
 
-Evaluate the candidate findings returned by the review subagents in the main session. Do not delegate this evaluation again.
+Evaluate every open root note in the main session: the candidate findings the subagents posted and any open user notes. Do not delegate this evaluation again.
 
-For each candidate finding:
+For each candidate:
 
 1. Confirm the reported location belongs to the active scope and matches the current code.
 2. Verify the failure scenario, repository evidence, severity, and supported environments.
-3. Accept, reject, or request clarification with a concrete reason.
+3. Accept, reject, or request clarification with a concrete reason, replying in the thread with the matching prefix.
 4. Check whether the proposed correction expands scope, changes the intended contract, or adds unused behavior.
 
-Drop unsupported findings and merge duplicates with the same root cause. Push back directly on incorrect or out-of-scope feedback. Report only accepted findings and concrete coverage gaps.
+Reply `Duplicate of <id>:` on every thread that shares a root cause with an earlier one, and `Rejected:` on unsupported, incorrect, or out-of-scope feedback. Push back directly; a rejection reply must give the concrete reason.
 
 ### 3. Apply accepted fixes when requested
 
-If the user requested fixes or cleanup, apply only accepted in-scope corrections after evaluating all subagent feedback. Preserve the intended contract and validate the changed behavior. Do not run a second review pass unless the user requests one.
+If the user requested fixes or cleanup, apply only accepted in-scope corrections after evaluating all feedback. Preserve the intended contract and validate the changed behavior. Reply `Fixed:` on each addressed thread with the validation evidence, then reload the session with the same scope so the user sees the corrected diff. Do not run a second review pass unless the user requests one.
 
 ## Validate
 
-Apply `verification-before-completion` before reporting review conclusions or accepted fixes.
+Apply `verification-before-completion`, including its Hunk note check, before reporting review conclusions or accepted fixes. In an inspection-only review, `Accepted:` threads are the review result: report them instead of fixing them.

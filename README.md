@@ -21,10 +21,10 @@ For local development, replace `"$HOME"/.omp/omp-skills` with the path to this c
 
 ## Commands
 
-| Command              | Purpose                                            |
-| -------------------- | -------------------------------------------------- |
-| `local-review-cycle` | Review local changes and apply fixes until LGTM    |
-| `pr-create`          | Create a PR and address review feedback until LGTM |
+| Command              | Purpose                                                 |
+| -------------------- | ------------------------------------------------------- |
+| `local-review-cycle` | Review local changes in Hunk and apply fixes until LGTM |
+| `pr-create`          | Create a PR and address review feedback until LGTM      |
 
 ## Skills
 
@@ -33,7 +33,7 @@ For local development, replace `"$HOME"/.omp/omp-skills` with the path to this c
 | `analyze-youtube-video`          | When the user shares a YouTube URL or asks what a video says; fetches only its transcript with yt-dlp for analysis    |
 | `commit`                         | When the user asks to commit changes; follows repository conventions with gitmoji as the fallback                     |
 | `finalizing-changes`             | When a coherent set of changes is ready to validate and then commit, merge, publish as a PR, or retain                |
-| `local-code-review`              | When reviewing local code changes in a working tree, branch, commit, or defined file set                              |
+| `local-code-review`              | When reviewing local code changes in a working tree, branch, commit, or defined file set; findings land as Hunk notes |
 | `planning`                       | While plan mode is active to shape plan contents; also for plan-only requests or consequential unresolved decisions   |
 | `systematic-debugging`           | When a bug, failing test, build failure, performance regression, or unexpected behavior needs diagnosis               |
 | `test-driven-development`        | For behavior changes and bug fixes when a test or executable regression check can establish the expected result first |
@@ -69,6 +69,7 @@ Arrows mean the source skill explicitly applies the target skill, and dashed edg
 - `read`, `glob`, `grep`, `lsp`, `edit`, and `write` handle repository inspection and changes before shell fallbacks.
 - `debug` and `browser` verify runtime and UI behavior directly.
 - `task`, `hub`, and `todo` provide parallel agents, process supervision, and phase tracking.
+- [Hunk](https://hunk.dev/) is required for `local-code-review` and `local-review-cycle`: findings, decisions, and fixes are recorded as note threads in a live `hunk diff` session, and `verification-before-completion` checks those threads before completion claims.
 - Skills and their supporting files are addressable through `skill://<name>`.
 - Project instructions live in `AGENTS.md`; OMP loads them as repository context.
 
