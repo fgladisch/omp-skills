@@ -42,8 +42,6 @@ Notes in a live Hunk session are requests from the user or other agents. Act on 
 4. Handle every open thread within the task's authorization: fix and validate it, then reply `Fixed:` with a `Validation:` rationale; push back with `Rejected:` and the concrete reason; or reply `Answered:` to a question. Use `hunk session comment add <selector> --reply-to <note-id> --summary <text> [--rationale <text>]`.
 5. Report every thread that stays open, such as one outside the task's scope or awaiting the user, and do not claim completion of the work it covers. Accepted findings from an inspection-only review are that review's result; report them instead of fixing them.
 
-The full note protocol lives in the `local-code-review` skill's `Hunk session` section.
-
 ## Completion gate
 
 Confirm all `todo` acceptance items are complete. If any item is blocked, report that work remains and do not claim completion. Confirm every open Hunk thread is handled or reported. Stop temporary `hub` processes, and confirm affected callsites, tests, documentation, and generated artifacts are updated or intentionally unchanged.
