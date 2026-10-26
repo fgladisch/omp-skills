@@ -32,6 +32,12 @@ Choose checks proportional to the change and risk. Run the changed path through 
 
 Treat `task` results as leads. Inspect the resulting artifact and independently run the checks required for the final claim. A completed agent job proves only that the agent returned.
 
+## OpenSpec tasks
+
+An OpenSpec change is active when `openspec list --json` reports a non-null `root` and the current work implements one of the listed changes: the change the user or `/opsx-apply` named, otherwise the only listed change. If several are listed and the work does not show which one it implements, ask. Without the CLI, a root, or a matching change, skip this section. Find the artifacts with `openspec status --change <name> --json` (`changeRoot`, `artifactPaths`) and open them with `read`; `glob` and `grep` skip `openspec/` when it is git-ignored.
+
+Every checked `- [x]` item in the change's `tasks.md` is a completion claim. Check an item only after fresh evidence proves it, and uncheck an item whose evidence later fails. Only the main session checks items; a subagent's report is a lead, as under Delegated work. Before claiming the change is complete, confirm that `openspec list --json` shows equal `completedTasks` and `totalTasks` for it, and that `openspec validate <name> --strict` passes. Report any failure as remaining work.
+
 ## Review notes
 
 Notes in a live Hunk session are requests from the user or other agents. Act on them before any completion claim:
@@ -44,7 +50,7 @@ Notes in a live Hunk session are requests from the user or other agents. Act on 
 
 ## Completion gate
 
-Confirm all `todo` acceptance items are complete. If any item is blocked, report that work remains and do not claim completion. Confirm every open Hunk thread is handled or reported. Stop temporary `hub` processes, and confirm affected callsites, tests, documentation, and generated artifacts are updated or intentionally unchanged.
+Confirm all `todo` acceptance items are complete, and for an active OpenSpec change, every `tasks.md` item. If any item is blocked, report that work remains and do not claim completion. Confirm every open Hunk thread is handled or reported. Stop temporary `hub` processes, and confirm affected callsites, tests, documentation, and generated artifacts are updated or intentionally unchanged.
 
 ## Reporting
 

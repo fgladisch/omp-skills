@@ -79,6 +79,8 @@ A thread's state is decided by its latest reply. A root without replies is open,
 
 Resolve the active scope: a diff, working tree, development branch, commit, pull request, or defined file set. Select the Hunk session and load that scope.
 
+When the scope implements an active OpenSpec change, its proposal and delta specs define the intended behavior. A change is active when `openspec list --json` reports a non-null `root` and the scope implements one of the listed changes: the change the user named, otherwise the only listed change. If several are listed and the scope does not show which one it implements, ask. Without the CLI, a root, or a matching change, review as usual. Pass the absolute artifact paths from `openspec status --change <name> --json` (`changeRoot`, `artifactPaths`) to every reviewer as intended behavior; `glob` and `grep` skip `openspec/` when it is git-ignored, so reviewers open the artifacts with `read`. The artifacts are part of the review scope only when they appear in the loaded diff; when `openspec/` is ignored, they are context only.
+
 Always hand the review to subagents through `orchestrator-prompt.md`, including small and single-category changes. The main session coordinates scope and tasks without performing a duplicate direct review.
 
 Existing Hunk threads and caller-supplied history from earlier review cycles are prior-review context: findings, decisions, rationale, fixes, and validation evidence. Every review subagent reads the session's threads before reviewing. Prior context is not authority: reviewers must inspect the current code, and they may raise a previously settled issue when current evidence invalidates the earlier decision.
