@@ -26,7 +26,7 @@ This is an inspection-and-reporting task. Do not edit the reviewed change, perfo
 ## Tools and routing
 
 - Resolve authoritative change metadata before dispatch. Use `pr://` or `issue://` context when supplied.
-- Use `bash` for read-only Git state, merge-base, numstat, and diff commands, and for `hunk session` commands.
+- Use `bash` for read-only Git commands (state, merge-base, numstat, diff) and for `hunk session` commands.
 - Use `read` for untracked files, repository instructions, and supporting code.
 - Use one `task` call for every review, including a single-file or single-category review.
 - Use direct repository inspection in the main session only to evaluate candidate findings.
