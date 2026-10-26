@@ -28,7 +28,7 @@ Run `hunk session list --json` and keep the sessions whose `repoRoot` matches th
 
 ### Load the scope
 
-Reload the session so it shows exactly the active review scope before dispatching reviewers, and again after applying fixes:
+Reload the session so it shows exactly the active review scope before dispatching reviewers, and again after applying fixes to a working-tree or branch scope. Commit and range scopes are fixed snapshots that cannot show working-tree fixes, so skip that second reload for them:
 
 | Scope                        | Reload command                                                      |
 | ---------------------------- | ------------------------------------------------------------------- |
@@ -94,11 +94,11 @@ For each candidate:
 3. Accept, reject, or request clarification with a concrete reason, replying in the thread with the matching prefix.
 4. Check whether the proposed correction expands scope, changes the intended contract, or adds unused behavior.
 
-Reply `Duplicate of <id>:` on every thread that shares a root cause with an earlier one, and `Rejected:` on unsupported, incorrect, or out-of-scope feedback. Push back directly; a rejection reply must give the concrete reason.
+Reply `Duplicate of <id>:` on every new thread that shares a root cause with another thread whose decision still holds; a new thread whose evidence invalidates an earlier decision gets a fresh evaluation instead. Reply `Rejected:` on unsupported, incorrect, or out-of-scope feedback. Push back directly; a rejection reply must give the concrete reason.
 
 ### 3. Apply accepted fixes when requested
 
-If the user requested fixes or cleanup, apply only accepted in-scope corrections after evaluating all feedback. Preserve the intended contract and validate the changed behavior. Reply `Fixed:` on each addressed thread with the validation evidence, then reload the session with the same scope so the user sees the corrected diff. Do not run a second review pass unless the user requests one.
+If the user requested fixes or cleanup, apply only accepted in-scope corrections after evaluating all feedback. Preserve the intended contract and validate the changed behavior. Reply `Fixed:` on each addressed thread with the validation evidence, then reload a working-tree or branch scope so the user sees the corrected diff. Do not run a second review pass unless the user requests one.
 
 ## Validate
 

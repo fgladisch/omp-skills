@@ -89,7 +89,7 @@ Disallow additional fields. An empty `note_ids` array means the subagent found n
 
 After every task returns, run `hunk session comment list {{hunk_selector}} --type all --json`. Confirm that every reported note ID is present and that the union of `reviewed_files` covers every scoped file; record a coverage gap for anything missing. Do not dispatch another review to evaluate the returned feedback.
 
-Apply `Evaluate incoming feedback` from `SKILL.md` to every new candidate note and every open user note. Reply in each thread with one of the protocol prefixes, and pass `--focus` on the first reply so agent notes become visible. After all replies are posted, navigate the user to the highest-severity open thread with `hunk session navigate {{hunk_selector}} --comment <id>`.
+Apply `Evaluate incoming feedback` from `SKILL.md` to every new candidate note and every open user note. Reply in each thread with one of the protocol prefixes, and pass `--focus` on the first reply so agent notes become visible. After all replies are posted, if any thread remains open, navigate the user to the highest-severity one with `hunk session navigate {{hunk_selector}} --comment <id>`.
 
 Preserve P0-P3 severity:
 

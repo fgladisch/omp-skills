@@ -9,6 +9,7 @@ Review one category of a defined code change and post candidate findings as note
 ## Assignment
 
 - Category: `{{category_name}}` (author slug `{{category_slug}}`, such as `logic`)
+- Focus: `{{category_focus}}`
 - Files: `{{file_list}}`
 - Scope kind: `{{scope_kind}}`
 - Base ref: `{{base_ref}}`
