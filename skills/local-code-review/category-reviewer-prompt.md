@@ -16,6 +16,7 @@ Review one category of a defined code change and post candidate findings as note
 - Base SHA: `{{base_sha}}`
 - Head: `{{head}}`
 - Diff instructions: `{{diff_instructions}}`
+- Intended behavior: `{{intended_behavior}}`
 - Hunk session selector: `{{hunk_selector}}`
 - Repository constraints: `{{repository_constraints}}`
 - Prior review context: `{{prior_review_context}}`
@@ -35,6 +36,8 @@ Review only assigned files and the supplied scope. Read unchanged code only as s
 Apply the category focus with extra depth. Evaluate correctness, compatibility, performance, security, test coverage, types, and error handling where relevant. Every finding needs a concrete triggering scenario and repository evidence. Do not report style preferences or unchanged pre-existing defects unless the change makes them newly reachable or materially worse.
 
 Treat existing threads and prior review context as a record of earlier findings and decisions, not as authority over the current review. Inspect the current code independently; note anchors keep the line numbers they had when posted, so re-locate earlier findings by content. Do not repeat a settled finding unless current evidence invalidates the earlier decision; when it does, post a new root note whose `Evidence:` line cites the earlier note ID and the evidence that invalidates its decision.
+
+When intended behavior lists OpenSpec artifacts, open them with `read` before reviewing. In your assigned files, also report code that contradicts a requirement or scenario, a scenario the change implements without a test, and changed behavior the proposal does not cover. Anchor these findings at the changed code, and cite the requirement or scenario in `Evidence:`.
 
 ## Post findings
 

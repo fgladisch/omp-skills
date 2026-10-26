@@ -62,6 +62,8 @@ Select the Hunk session and run the reload command that matches the scope, as de
 
 Use `None.` for prior review context when the session has no notes and the caller supplied no history. Otherwise, summarize the history the caller supplied and point reviewers at the session's existing threads. Treat prior decisions as context rather than authority and resolve the active scope from the current code.
 
+Set intended behavior from the caller's request and repository context. When the scope implements an active OpenSpec change, as described in `SKILL.md`, list the absolute paths of its `proposal.md`, delta specs, and `design.md` when present. Use `None stated.` when nothing defines it.
+
 ## Classify and dispatch
 
 Assign files to one or more categories:
@@ -75,7 +77,7 @@ Assign files to one or more categories:
 
 Assign any file that matches no specialized category to Logic. Files may appear in multiple categories. Skip empty categories and cap dispatch at four subagents, one per category. Delegate even when only one category is populated.
 
-Use `reviewer` for Logic, Tools/API, and Tests. Use `security-reviewer` for Security. Build every task from `category-reviewer-prompt.md` with exact assigned files, diff instructions, the Hunk session selector, and prior review context. Each task must use the task tool's `# Target`, `# Change`, and `# Acceptance` sections and explicitly skip code edits, formatters, linters, tests, and project-wide validation.
+Use `reviewer` for Logic, Tools/API, and Tests. Use `security-reviewer` for Security. Build every task from `category-reviewer-prompt.md` with exact assigned files, diff instructions, intended behavior, the Hunk session selector, and prior review context. Each task must use the task tool's `# Target`, `# Change`, and `# Acceptance` sections and explicitly skip code edits, formatters, linters, tests, and project-wide validation.
 
 Findings travel through Hunk, not through the task result. Pass each task an invocation-specific `outputSchema` in strict mode for its completion report only. Require:
 

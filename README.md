@@ -34,7 +34,6 @@ For local development, replace `"$HOME"/.omp/omp-skills` with the path to this c
 | `commit`                         | When the user asks to commit changes; follows repository conventions with gitmoji as the fallback                     |
 | `finalizing-changes`             | When a coherent set of changes is ready to validate and then commit, merge, publish as a PR, or retain                |
 | `local-code-review`              | When reviewing local code changes in a working tree, branch, commit, or defined file set; findings land as Hunk notes |
-| `planning`                       | While plan mode is active to shape plan contents; also for plan-only requests or consequential unresolved decisions   |
 | `systematic-debugging`           | When a bug, failing test, build failure, performance regression, or unexpected behavior needs diagnosis               |
 | `test-driven-development`        | For behavior changes and bug fixes when a test or executable regression check can establish the expected result first |
 | `verification-before-completion` | Before claiming work is complete, fixed, passing, reviewed, ready, committed, or integrated                           |
@@ -43,7 +42,6 @@ For local development, replace `"$HOME"/.omp/omp-skills` with the path to this c
 
 ```mermaid
 flowchart TB
-  P["planning<br/>(when requested or decisions remain)"]
   SD["systematic-debugging"]
   TDD["test-driven-development"]
   CR["local-code-review"]
@@ -61,7 +59,36 @@ flowchart TB
   F --> V
 ```
 
-Arrows mean the source skill explicitly applies the target skill, and dashed edges are conditional. Planning is an independent entry point; clear implementation requests can proceed without it. TDD requests independent review only when compatibility, security, data-integrity, or operational risk warrants the additional pass.
+Arrows mean the source skill explicitly applies the target skill, and dashed edges are conditional. TDD requests independent review only when compatibility, security, data-integrity, or operational risk warrants the additional pass.
+
+## OpenSpec (optional)
+
+[OpenSpec](https://github.com/Fission-AI/OpenSpec) is the recommended way to plan changes with these skills; it replaces OMP plan mode. Each change gets a proposal, delta specs with WHEN/THEN scenarios, a design, and a task list before code is written. The skills work without it. When the current work implements an active OpenSpec change, they also use its artifacts:
+
+| Skill                            | With an active OpenSpec change                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------ |
+| `test-driven-development`        | Turns each delta-spec scenario into a failing test before the task that implements it      |
+| `verification-before-completion` | Treats checked `tasks.md` items as claims that need evidence; runs `openspec validate`     |
+| `local-code-review`              | Gives reviewers the proposal and delta specs as the intended behavior                      |
+| `finalizing-changes`             | Writes the pull request What and Why from the proposal; leaves archiving until after merge |
+
+Install the CLI once, then initialize each repository with the core profile:
+
+```sh
+npm install -g @fission-ai/openspec@latest
+openspec init --tools oh-my-pi --profile core
+```
+
+`init` creates `openspec/` plus generated skills in `.omp/skills/openspec-*/` and commands in `.omp/commands/opsx-*.md`. Commit all of them, so proposals and specs are shared in pull requests. OpenSpec owns the generated files, and `openspec update` regenerates them. Restart OMP afterwards and confirm that `/opsx-propose` is available.
+
+A change runs through these steps:
+
+1. `/opsx-explore` to investigate when the idea is still open.
+2. `/opsx-propose <idea>` to create the change; review and edit its artifacts.
+3. Create the topic branch, then `/opsx-apply` to implement the tasks.
+4. `/local-review-cycle` or `local-code-review` to review the result.
+5. `finalizing-changes` or `/pr-create` to publish it.
+6. After the merge, `/opsx-archive` on the base branch to merge the delta specs into `openspec/specs/`, then commit the result.
 
 ## OMP tooling
 
