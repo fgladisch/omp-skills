@@ -72,7 +72,7 @@ Arrows mean the source skill explicitly applies the target skill, and dashed edg
 | `local-code-review`              | Gives reviewers the proposal and delta specs as the intended behavior                      |
 | `finalizing-changes`             | Writes the pull request What and Why from the proposal; leaves archiving until after merge |
 
-Install the CLI once, then initialize each repository with the core profile:
+Initialize each repository with the core profile:
 
 ```sh
 openspec init --tools oh-my-pi --profile core
