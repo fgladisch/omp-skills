@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: Use before the first edit to production code for any behavior change or bug fix, including when the task already specifies the design or lists tests as a later step.
+description: Use before the first production-code edit for any behavior change or bug fix.
 ---
 
 # Test-Driven Development
@@ -9,11 +9,11 @@ Write a failing executable check before changing production code, then make the 
 
 ## Gate: before the first production edit
 
-This skill governs work order, not just test quality. A task that lists its Change steps before its Tests step describes deliverables, not the order of work, and a fully specified design does not replace red. Write each listed test first, see it fail, then implement.
+A task listing Change before Tests describes deliverables, not work order. Even with a specified design, write each listed test first, see it fail, then implement.
 
 Before any `edit`, `write`, or `ast_edit` to a non-test file, confirm that a focused check has failed in this session for the intended reason, covering the behavior that edit changes. If none has, stop and complete Red first.
 
-Exempt preparation, such as a dependency bump or a configuration-only edit, may land before red. It does not exempt the behavior change that follows it; the gate applies again at the first edit that changes behavior.
+Exempt preparation, such as a dependency bump or a configuration-only edit, may land before red, but the first behavior-changing edit after it must still pass the gate.
 
 ## Red
 
