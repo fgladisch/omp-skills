@@ -1,11 +1,19 @@
 ---
 name: test-driven-development
-description: Use for behavior changes and bug fixes when an automated test or executable regression check can establish the expected result before production code changes.
+description: Use before the first edit to production code for any behavior change or bug fix, including when the task already specifies the design or lists tests as a later step.
 ---
 
 # Test-Driven Development
 
-Use a failing executable check to define observable behavior, then make the smallest change that satisfies it.
+Write a failing executable check before changing production code, then make the smallest change that satisfies it.
+
+## Gate: before the first production edit
+
+This skill governs work order, not just test quality. A task that lists its Change steps before its Tests step describes deliverables, not the order of work, and a fully specified design does not replace red. Write each listed test first, see it fail, then implement.
+
+Before any `edit`, `write`, or `ast_edit` to a non-test file, confirm that a focused check has failed in this session for the intended reason, covering the behavior that edit changes. If none has, stop and complete Red first.
+
+Exempt preparation, such as a dependency bump or a configuration-only edit, may land before red. It does not exempt the behavior change that follows it; the gate applies again at the first edit that changes behavior.
 
 ## Red
 
@@ -13,6 +21,7 @@ Use a failing executable check to define observable behavior, then make the smal
 2. Find the repository's test conventions with `glob`, `grep`, and targeted `read` calls.
 3. Add the smallest test that expresses the expected public behavior.
 4. Run the focused check with `bash` and confirm it fails for the intended reason. Syntax errors, missing dependencies, and unrelated failures do not establish red.
+5. Note the test name and the failure message for the final report.
 
 For a service needed by the check, start and supervise it with `hub`, not a detached shell command. For browser-visible behavior, use `browser` to establish the failing interaction when an automated test is not the right contract.
 
@@ -42,6 +51,10 @@ After the Green and Refactor steps, apply `local-code-review` when the change ca
 
 ## Practical exceptions
 
-Strict test-first may add little value for documentation, generated artifacts, configuration-only edits, exploratory spikes, UI-only visual changes, or environments without a usable harness. Proceed without asking when the exception is clear and record the executable, browser, or artifact validation used instead. For hard-to-isolate legacy code, add the narrowest characterization or integration check that exposes the regression.
+Strict test-first may add little value for documentation, generated artifacts, configuration-only edits, exploratory spikes, UI-only visual changes, or environments without a usable harness. Decide an exception before the first production edit; implementing first and then finding the behavior hard to test does not qualify. Proceed without asking when the exception is clear and record the executable, browser, or artifact validation used instead. For hard-to-isolate legacy code, add the narrowest characterization or integration check that exposes the regression.
 
-Do not delete correct pre-existing work because its tests were written later. Improve its evidence from the current state. Apply `verification-before-completion` before claiming the behavior works or the regression is covered.
+Do not delete correct pre-existing work because its tests were written later. Improve its evidence from the current state.
+
+## Report red evidence
+
+The final report names each test observed failing before its production change and the failure reason it showed, and names the substitute validation for each exception. A test first run after the production change is not red evidence: to recover, revert only the production change temporarily (for example `git stash push -- <production paths>`), observe the failure, restore it, and report that order. Apply `verification-before-completion` before claiming the behavior works or the regression is covered.

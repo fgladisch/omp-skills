@@ -28,15 +28,15 @@ For local development, replace `"$HOME"/.omp/omp-skills` with the path to this c
 
 ## Skills
 
-| Skill                            | When to use                                                                                                           |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `analyze-youtube-video`          | When the user shares a YouTube URL or asks what a video says; fetches only its transcript with yt-dlp for analysis    |
-| `commit`                         | When the user asks to commit changes; follows repository conventions with gitmoji as the fallback                     |
-| `finalizing-changes`             | When a coherent set of changes is ready to validate and then commit, merge, publish as a PR, or retain                |
-| `local-code-review`              | When reviewing local code changes in a working tree, branch, commit, or defined file set; findings land as Hunk notes |
-| `systematic-debugging`           | When a bug, failing test, build failure, performance regression, or unexpected behavior needs diagnosis               |
-| `test-driven-development`        | For behavior changes and bug fixes when a test or executable regression check can establish the expected result first |
-| `verification-before-completion` | Before claiming work is complete, fixed, passing, reviewed, ready, committed, or integrated                           |
+| Skill                            | When to use                                                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `analyze-youtube-video`          | When the user shares a YouTube URL or asks what a video says; fetches only its transcript with yt-dlp for analysis       |
+| `commit`                         | When the user asks to commit changes; follows repository conventions with gitmoji as the fallback                        |
+| `finalizing-changes`             | When a coherent set of changes is ready to validate and then commit, merge, publish as a PR, or retain                   |
+| `local-code-review`              | When reviewing local code changes in a working tree, branch, commit, or defined file set; findings land as Hunk notes    |
+| `systematic-debugging`           | When a bug, failing test, build failure, performance regression, or unexpected behavior needs diagnosis                  |
+| `test-driven-development`        | Before the first production-code edit for any behavior change or bug fix, even when the task lists tests as a later step |
+| `verification-before-completion` | Before claiming work is complete, fixed, passing, reviewed, ready, committed, or integrated                              |
 
 ## Skill dependency graph
 
