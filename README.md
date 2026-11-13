@@ -1,5 +1,8 @@
 # omp-skills
 
+> [!IMPORTANT]
+> This repository is archived and no longer maintained. I switched from Oh My Pi to [OpenCode](https://opencode.ai), and my skills now live in [fgladisch/opencode-workflow](https://github.com/fgladisch/opencode-workflow).
+
 A personal skills and command library for [Oh My Pi](https://github.com/can1357/oh-my-pi). The content targets OMP's built-in tool surface and execution workflows.
 
 ## Installation
